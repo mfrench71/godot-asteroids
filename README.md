@@ -13,6 +13,7 @@ Each part of the series has a tag, so you can see the code exactly as it was at 
 | `part-03` | [Part 3: Thrust, Drift and Wrap](https://circleseven.co.uk/learning-godot-by-rebuilding-asteroids-part-3-thrust-drift-and-wrap/) |
 | `part-04` | [Part 4: A Flickering Thrust Flame](https://circleseven.co.uk/learning-godot-by-rebuilding-asteroids-part-4-a-flickering-thrust-flame/) |
 | `part-05` | [Part 5: The Real Ship](https://circleseven.co.uk/learning-godot-by-rebuilding-asteroids-part-5-the-real-ship/) |
+| `part-06` | [Part 6: The Arcade's Numbers](https://circleseven.co.uk/learning-godot-by-rebuilding-asteroids-part-6-the-arcade-s-numbers/) |
 
 There's also an aside about the arcade machine itself: [Inside the Arcade Machine](https://circleseven.co.uk/learning-godot-by-rebuilding-asteroids-aside-inside-the-arcade-machine/).
 
