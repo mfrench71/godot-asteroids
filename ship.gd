@@ -1,7 +1,7 @@
 extends Node2D
 
-# Temporary values until I scale the arcade's numbers to the window.
-const TURN_SPEED: float = 4.0	# degrees of rotation per tick
+# THRUST, DRAG and MAX_SPEED are temporary until I scale the arcade's numbers to the window.
+const TURN_SPEED: float = 4.3	# the arcade's turn speed: 3/256 of a turn per update, at 61.5 updates a second
 const THRUST: float = 0.1		# pixels per tick, added each tick 'Up' is held
 const DRAG: float = 0.99		# speed kept each tick when not thrusting
 const MAX_SPEED: float = 8.0	# top speed on x and on y, in pixels per tick
@@ -42,11 +42,9 @@ func _physics_process(_delta: float) -> void:
 	position.y = wrapf(position.y, 0.0, screen_size.y)
 
 func _draw() -> void:
-	print("drawing", ticks)  # temporary: shows how often _draw runs
 	# The nose points right because a rotation of 0 faces right.
-	var outline: PackedVector2Array = PackedVector2Array([Vector2(-8, -8), Vector2(12, 0), Vector2(-8, 8)])
+	var outline: PackedVector2Array = PackedVector2Array([Vector2(-6, 4), Vector2(-6, -4), Vector2(-10, -8), Vector2(14, 0), Vector2(-10, 8), Vector2(-6, 4)])
 	draw_polyline(outline, Color.WHITE)
-	draw_line(Vector2(-3, -6), Vector2(-3, 6), Color.WHITE) # crossbar at the back
 	if flame_on:
-		var flame: PackedVector2Array = PackedVector2Array([Vector2(-3, -3), Vector2(-10, 0), Vector2(-3, 3)])
+		var flame: PackedVector2Array = PackedVector2Array([Vector2(-6, 4), Vector2(-14, 0), Vector2(-6, -4)])
 		draw_polyline(flame, Color.WHITE)
