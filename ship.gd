@@ -1,10 +1,10 @@
 extends Node2D
 
-# THRUST, DRAG and MAX_SPEED are temporary until I scale the arcade's numbers to the window.
+# THRUST, DRAG and MAX_SPEED are the arcade's values, converted to pixels and 60 ticks a second
 const TURN_SPEED: float = 4.33	# the arcade's turn speed: 3/256 of a turn per update, at 61.5 updates a second
-const THRUST: float = 0.1		# pixels per tick, added each tick 'Up' is held
-const DRAG: float = 0.99		# speed kept each tick when not thrusting
-const MAX_SPEED: float = 8.0	# top speed on x and on y, in pixels per tick
+const THRUST: float = 0.065		# reaches top speed in 2.08 s, like the arcade (pixels per tick, added each tick Up is held)
+const DRAG: float = 0.996		# the arcade's x 127/128 every 2nd update (speed kept each tick when not thrusting)
+const MAX_SPEED: float = 8.07	# the arcade's max speed: capped at $3F playfield units per update
 
 # Speed and direction, in pixels per tick. Outside any function,
 # so the ship keeps drifting from one tick to the next.
