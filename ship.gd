@@ -1,7 +1,7 @@
 extends Node2D
 
 # THRUST, DRAG and MAX_SPEED are temporary until I scale the arcade's numbers to the window.
-const TURN_SPEED: float = 4.3	# the arcade's turn speed: 3/256 of a turn per update, at 61.5 updates a second
+const TURN_SPEED: float = 4.33	# the arcade's turn speed: 3/256 of a turn per update, at 61.5 updates a second
 const THRUST: float = 0.1		# pixels per tick, added each tick 'Up' is held
 const DRAG: float = 0.99		# speed kept each tick when not thrusting
 const MAX_SPEED: float = 8.0	# top speed on x and on y, in pixels per tick
