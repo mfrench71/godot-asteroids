@@ -7,6 +7,9 @@ const DRAG: float = 0.996		# the arcade's x 127/128 every 2nd update (speed kept
 const MAX_SPEED: float = 8.07	# the arcade's max speed: capped at $3F playfield units per update
 const BULLET_SCENE: PackedScene = preload("res://bullet.tscn")
 const SHOT_SPEED: float = 8.07  # the arcade's 63 playfield units per update
+const SHOT_MAX_SPEED: float = 14.22  # the arcade's cap of 111 playfield units per update
+const MAX_SHOTS: int = 4  # the arcade has 4 slots for the player's shots
+const SHOT_START: float = 11.9  # 95 playfield units ahead of the ship's centre
 
 # Speed and direction, in pixels per tick. Outside any function,
 # so the ship keeps drifting from one tick to the next.
@@ -43,10 +46,12 @@ func _physics_process(_delta: float) -> void:
 	position.x = wrapf(position.x, 0.0, screen_size.x)
 	position.y = wrapf(position.y, 0.0, screen_size.y)
 	
-	if Input.is_action_just_pressed("fire"):
+	if Input.is_action_just_pressed("fire") and get_tree().get_nodes_in_group("player_shots").size() < MAX_SHOTS:
 		var bullet: Bullet = BULLET_SCENE.instantiate() as Bullet
-		bullet.position = position
-		bullet.velocity = Vector2.from_angle(rotation) * SHOT_SPEED
+		bullet.position = position + Vector2.from_angle(rotation) * SHOT_START  # ahead of the ship, like the arcade
+		bullet.velocity = Vector2.from_angle(rotation) * SHOT_SPEED + velocity
+		bullet.velocity.x = clampf(bullet.velocity.x, -SHOT_MAX_SPEED, SHOT_MAX_SPEED)
+		bullet.velocity.y = clampf(bullet.velocity.y, -SHOT_MAX_SPEED, SHOT_MAX_SPEED)
 		get_parent().add_child(bullet)
 
 func _draw() -> void:
