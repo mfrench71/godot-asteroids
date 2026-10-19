@@ -14,6 +14,7 @@ Each part of the series has a tag, so you can see the code exactly as it was at 
 | `part-04` | [Part 4: A Flickering Thrust Flame](https://circleseven.co.uk/learning-godot-by-rebuilding-asteroids-part-4-a-flickering-thrust-flame/) |
 | `part-05` | [Part 5: The Real Ship](https://circleseven.co.uk/learning-godot-by-rebuilding-asteroids-part-5-the-real-ship/) |
 | `part-06` | [Part 6: The Arcade's Numbers](https://circleseven.co.uk/learning-godot-by-rebuilding-asteroids-part-6-the-arcade-s-numbers/) |
+| `part-07` | [Part 7: Firing](https://circleseven.co.uk/learning-godot-by-rebuilding-asteroids-part-7-firing/) |
 
 There's also an aside about the arcade machine itself: [Inside the Arcade Machine](https://circleseven.co.uk/learning-godot-by-rebuilding-asteroids-aside-inside-the-arcade-machine/).
 
@@ -25,7 +26,7 @@ To get a part's code, pick its tag from the branch menu on GitHub, or run `git c
 2. In the Project Manager, click Import and choose this folder's `project.godot`.
 3. Press Cmd+B (Ctrl+B on Windows and Linux) to run it.
 
-The controls are the arrow keys: Left and Right to turn, Up to thrust.
+The controls are the arrow keys: Left and Right to turn, Up to thrust, and Space to fire.
 
 ## About
 
