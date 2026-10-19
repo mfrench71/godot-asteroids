@@ -5,6 +5,8 @@ const TURN_SPEED: float = 4.33	# the arcade's turn speed: 3/256 of a turn per up
 const THRUST: float = 0.065		# reaches top speed in 2.08 s, like the arcade (pixels per tick, added each tick Up is held)
 const DRAG: float = 0.996		# the arcade's x 127/128 every 2nd update (speed kept each tick when not thrusting)
 const MAX_SPEED: float = 8.07	# the arcade's max speed: capped at $3F playfield units per update
+const BULLET_SCENE: PackedScene = preload("res://bullet.tscn")
+const SHOT_SPEED: float = 8.07  # the arcade's 63 playfield units per update
 
 # Speed and direction, in pixels per tick. Outside any function,
 # so the ship keeps drifting from one tick to the next.
@@ -40,6 +42,12 @@ func _physics_process(_delta: float) -> void:
 	var screen_size: Vector2 = get_viewport_rect().size
 	position.x = wrapf(position.x, 0.0, screen_size.x)
 	position.y = wrapf(position.y, 0.0, screen_size.y)
+	
+	if Input.is_action_just_pressed("fire"):
+		var bullet: Bullet = BULLET_SCENE.instantiate() as Bullet
+		bullet.position = position
+		bullet.velocity = Vector2.from_angle(rotation) * SHOT_SPEED
+		get_parent().add_child(bullet)
 
 func _draw() -> void:
 	# The nose points right because a rotation of 0 faces right.
