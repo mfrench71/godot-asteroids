@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" uid="uid://doxt4u1y575uk" path="res://main.gd" id="1_ig7tw"]
 [ext_resource type="PackedScene" uid="uid://bxxsw4acb4tna" path="res://ship.tscn" id="2_0xm2m"]
+[ext_resource type="PackedScene" uid="uid://c1mah245n6bul" path="res://rock.tscn" id="3_h2yge"]
 
 [node name="Main" type="Node2D" unique_id=1979476297]
 script = ExtResource("1_ig7tw")
@@ -9,3 +10,18 @@ script = ExtResource("1_ig7tw")
 [node name="Ship" parent="." unique_id=834139698 instance=ExtResource("2_0xm2m")]
 position = Vector2(524, 372)
 rotation = -1.5707964
+
+[node name="Rock" parent="." unique_id=2144336402 instance=ExtResource("3_h2yge")]
+position = Vector2(194, 215)
+
+[node name="Rock2" parent="." unique_id=1269454063 instance=ExtResource("3_h2yge")]
+position = Vector2(802, 227)
+shape = 1
+
+[node name="Rock3" parent="." unique_id=2129787321 instance=ExtResource("3_h2yge")]
+position = Vector2(162, 579)
+shape = 2
+
+[node name="Rock4" parent="." unique_id=1441503269 instance=ExtResource("3_h2yge")]
+position = Vector2(794, 555)
+shape = 3
