@@ -12,5 +12,14 @@ const SHAPES: Array = [
 
 @export_range(0, 3) var shape: int = 0  # which of the four shapes to draw
 
+var velocity: Vector2 = Vector2.ZERO # pixels per tick, set by Main when the rock is made
+
+func _physics_process(_delta: float) -> void:
+	position += velocity
+	# Off one edge, back on the opposite one, like everything in Asteroids.
+	var screen_size: Vector2 = get_viewport_rect().size
+	position.x = wrapf(position.x, 0.0, screen_size.x)
+	position.y = wrapf(position.y, 0.0, screen_size.y)
+
 func _draw() -> void:
 	draw_polyline(PackedVector2Array(SHAPES[shape]), Color.WHITE)
