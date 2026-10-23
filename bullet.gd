@@ -1,19 +1,20 @@
+# One player shot: flies straight, wraps, hits a rock, and lasts about 1.17 seconds.
 class_name Bullet
 extends Node2D
 
-const LIFETIME: int = 70  # the arcade's 18 steps, one every 4th update: 72 updates, 1.17 seconds
+const LIFETIME: int = 70 # the arcade's 18 steps, one every 4th update: 72 updates, 1.17 seconds
 
-var velocity: Vector2 = Vector2.ZERO  # pixels per tick, set by the ship when it fires
-var ticks_left: int = LIFETIME
+var velocity: Vector2 = Vector2.ZERO # pixels per tick, set by the ship when it fires
+var ticks_left: int = LIFETIME # counts down to 0, then the shot is removed
 
 func _ready() -> void:
-	add_to_group("player_shots")  # so the ship can count its shots
+	add_to_group("player_shots") # so the ship can count its shots
 
 func _physics_process(_delta: float) -> void:
 	ticks_left -= 1
 	if ticks_left <= 0:
-		queue_free()
-		return
+		queue_free() # gone at the end of this tick
+		return # so a removed shot doesn't move again
 	position += velocity
 	# Off one edge, back on the opposite one, like everything in Asteroids.
 	var screen_size: Vector2 = get_viewport_rect().size
@@ -27,4 +28,4 @@ func _physics_process(_delta: float) -> void:
 			return
 
 func _draw() -> void:
-	draw_circle(Vector2.ZERO, 1.0, Color.WHITE)  # a dot, like the arcade's zero-length line
+	draw_circle(Vector2.ZERO, 1.0, Color.WHITE) # a dot, like the arcade's zero-length line
