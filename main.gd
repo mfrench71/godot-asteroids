@@ -19,6 +19,11 @@ func spawn_rock() -> void:
 		rock.position = Vector2(randf_range(0.0, screen_size.x), 0.0)
 	rock.velocity = Vector2(random_speed(), random_speed())
 	add_child(rock) # a child of Main, like the shots
+	rock.destroyed.connect(_on_rock_destroyed) # runs each time this rock is hit
+
+# Temporary: Lesson 15 splits the rock here
+func _on_rock_destroyed(rock: Rock) -> void:
+	print("Position: ", rock.position, " Size: ", rock.size)
 
 # One axis of the arcade's random rock speed: 6 to 15 playfield units per update, either way.
 func random_speed() -> float:

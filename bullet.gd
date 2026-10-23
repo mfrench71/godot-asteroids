@@ -23,7 +23,7 @@ func _physics_process(_delta: float) -> void:
 	# Like the arcade, a shot can hit one rock, and both go.
 	for rock: Rock in get_tree().get_nodes_in_group("rocks"):
 		if rock.is_hit_by(position):
-			rock.queue_free()
+			rock.hit()
 			queue_free()
 			return
 

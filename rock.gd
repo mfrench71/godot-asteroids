@@ -2,6 +2,8 @@
 class_name Rock
 extends Node2D
 
+signal destroyed(rock: Rock) # tells Main a shot hit this rock
+
 # The arcade's four rock shapes, from the vector ROM, with y flipped for Godot.
 # A large rock is drawn at the ROM's own size: 64 pixels across.
 const SHAPES: Array = [
@@ -31,6 +33,11 @@ func is_hit_by(point: Vector2) -> bool:
 	var h: float = HIT_SIZE[size]
 	# Inside the box on both axes, and not in one of its cut-off corners.
 	return dx <= h and dy <= h and dx + dy < h * 1.5
+
+# Called by the shot that hits this rock.
+func hit() -> void:
+	destroyed.emit(self) # Main's handler runs now, before the next line
+	queue_free()
 
 func _physics_process(_delta: float) -> void:
 	position += velocity
