@@ -1,4 +1,4 @@
-# The player's ship: turning, thrust, drag, screen wrap, the flame and firing.
+# The player's ship: turning, thrust, drag, screen wrap, the flame, firing, and being hit and coming back.
 extends Node2D
 
 signal destroyed # tells Main a rock hit the ship
@@ -16,6 +16,7 @@ const SHOT_START: float = 11.9 # 95 playfield units ahead of the ship's centre
 const SHIP_SIZE: float = 7.0 # the arcade adds 28 to a rock's size for the ship: 28 / 4 pixels
 const START: Vector2 = Vector2(524, 372) # the arcade's start position, $1060 and $0C60 (Part 6)
 const RESPAWN_TICKS: int = 180 # the arcade: a 0.91 s explosion, then 129 updates: 185 updates, 3.0 s
+const SAFE_AREA: Rect2 = Rect2(384, 256, 256, 256) # the arcade's check before the ship comes back: x 384 to 640, y 256 to 512
 
 # Speed and direction, in pixels per tick. Outside any function,
 # so the ship keeps drifting from one tick to the next.
@@ -30,9 +31,12 @@ func _physics_process(_delta: float) -> void:
 	if respawn_ticks > 0:
 		respawn_ticks -= 1
 		if respawn_ticks == 0:
-			position = START
-			velocity = Vector2.ZERO
-			visible = true
+			if start_is_clear():
+				position = START
+				velocity = Vector2.ZERO
+				visible = true
+			else:
+				respawn_ticks = 1 # a rock is in the way: try again next tick, like the arcade
 		return
 	if Input.is_action_pressed("rotate_left"):
 		rotation_degrees -= TURN_SPEED # anticlockwise
@@ -77,6 +81,13 @@ func _physics_process(_delta: float) -> void:
 		bullet.velocity.x = clampf(bullet.velocity.x, -SHOT_MAX_SPEED, SHOT_MAX_SPEED)
 		bullet.velocity.y = clampf(bullet.velocity.y, -SHOT_MAX_SPEED, SHOT_MAX_SPEED)
 		get_parent().add_child(bullet) # into Main, so it flies on its own
+
+# True when no rock is in SAFE_AREA, so the ship can come back without landing on one.
+func start_is_clear() -> bool:
+	for rock: Rock in get_tree().get_nodes_in_group("rocks"):
+		if SAFE_AREA.has_point(rock.position):
+			return false
+	return true
 
 func _draw() -> void:
 	# The nose points right because a rotation of 0 faces right.

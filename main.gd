@@ -51,4 +51,4 @@ func to_pixels(speed: Vector2i) -> Vector2:
 
 # Runs when the Ship's destroyed signal fires (connected in the editor, saved in main.tscn).
 func _on_ship_destroyed() -> void:
-	print("Ship destroyed") # temporary: the next step brings it back
+	print("Ship destroyed") # temporary: lives coming in Part 12
