@@ -18,13 +18,16 @@ var size: int = 2 # 2 large, 1 medium, 0 small
 # Half the width of the area a shot has to land in, for each size: small, medium, large.
 # The arcade's 42, 72 and 132 are halves of a distance in playfield units, so x 2 / 8 for pixels.
 const HIT_SIZE: Array = [10.5, 18.0, 33.0]
+const SCALES: Array = [0.25, 0.5, 1.0] # drawn size for each size: small, medium, large
 
 @export_range(0, 3) var shape: int = 0 # which of the four shapes to draw
 
 var velocity: Vector2 = Vector2.ZERO # pixels per tick, set by Main when the rock is made
+var speed: Vector2i = Vector2i.ZERO # playfield units per update, like the arcade; set by Main
 
 func _ready() -> void:
 	add_to_group("rocks") # so shots can find every rock
+	scale = Vector2.ONE * SCALES[size] # shrinks the outline; lines stay 1 pixel wide
 
 # The arcade's hit test: a box with its corners cut off, an octagon, centred on the rock.
 func is_hit_by(point: Vector2) -> bool:

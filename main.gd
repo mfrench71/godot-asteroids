@@ -17,19 +17,34 @@ func spawn_rock() -> void:
 		rock.position = Vector2(0.0, randf_range(0.0, screen_size.y))
 	else:
 		rock.position = Vector2(randf_range(0.0, screen_size.x), 0.0)
-	rock.velocity = Vector2(random_speed(), random_speed())
+	rock.speed = Vector2i(random_speed(), random_speed())
+	rock.velocity = to_pixels(rock.speed)
 	add_child(rock) # a child of Main, like the shots
 	rock.destroyed.connect(_on_rock_destroyed) # runs each time this rock is hit
 
-# Temporary: Lesson 15 splits the rock here
+# A hit rock splits into two of the next size down, like the arcade. Small ones just go.
 func _on_rock_destroyed(rock: Rock) -> void:
-	print("Position: ", rock.position, " Size: ", rock.size)
+	if rock.size == 0:
+		return # a small rock leaves nothing behind
+	for i in 2: # i isn't used
+		var child: Rock = ROCK_SCENE.instantiate() as Rock
+		child.size = rock.size - 1 # large to medium, medium to small
+		child.shape = randi_range(0, 3)
+		child.position = rock.position # starts where the old rock was
+		child.speed = Vector2i(random_speed(), random_speed())
+		child.velocity = to_pixels(child.speed)
+		add_child(child)
+		child.destroyed.connect(_on_rock_destroyed) # so the child can split too
 
-# One axis of the arcade's random rock speed: 6 to 15 playfield units per update, either way.
-func random_speed() -> float:
+# One axis of a new rock's speed, in playfield units per update: 6 to 15 either way, like the arcade.
+func random_speed() -> int:
 	var units: int = randi_range(-16, 15)
 	if units >= 0:
 		units = maxi(units, 6)
 	else:
 		units = mini(units, -6)
-	return units / 8.0 * 61.5 / 60.0 # playfield units per update to pixels per tick
+	return units
+
+# Playfield units per update to pixels per tick.
+func to_pixels(speed: Vector2i) -> Vector2:
+	return Vector2(speed) / 8.0 * 61.5 / 60.0
