@@ -9,3 +9,5 @@ script = ExtResource("1_ig7tw")
 [node name="Ship" parent="." unique_id=834139698 instance=ExtResource("2_0xm2m")]
 position = Vector2(524, 372)
 rotation = -1.5707964
+
+[connection signal="destroyed" from="Ship" to="." method="_on_ship_destroyed"]

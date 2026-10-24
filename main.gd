@@ -48,3 +48,7 @@ func random_speed(base: int) -> int:
 # Playfield units per update to pixels per tick.
 func to_pixels(speed: Vector2i) -> Vector2:
 	return Vector2(speed) / 8.0 * 61.5 / 60.0
+
+# Runs when the Ship's destroyed signal fires (connected in the editor, saved in main.tscn).
+func _on_ship_destroyed() -> void:
+	print("Ship destroyed") # temporary: the next step brings it back
