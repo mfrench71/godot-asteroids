@@ -12,6 +12,7 @@ var lives: int = START_LIVES # ships left, counting the one in play
 func _ready() -> void:
 	for i in FIRST_WAVE: # runs FIRST_WAVE times; i isn't used
 		spawn_rock()
+	update_display()
 
 func spawn_rock() -> void:
 	var rock: Rock = ROCK_SCENE.instantiate() as Rock
@@ -31,12 +32,12 @@ func spawn_rock() -> void:
 func _on_rock_destroyed(rock: Rock) -> void:
 	var before: int = score
 	score += POINTS[rock.size]
-	print("Score: ", score) # temporary, until it's on the screen
 	# Like the arcade, an extra ship each time the score passes another 10,000.
+	# Dividing ints drops the fraction, which is the point here: it counts whole 10,000s.
 	@warning_ignore("integer_division")
 	if score / 10000 > before / 10000:
 		lives += 1
-		print("Extra ship! Lives: ", lives) # temporary
+	update_display()
 	if rock.size == 0:
 		return # a small rock leaves nothing behind
 	for i in 2: # i isn't used
@@ -65,7 +66,12 @@ func to_pixels(speed: Vector2i) -> Vector2:
 # Runs when the Ship's destroyed signal fires (connected in the editor, saved in main.tscn).
 func _on_ship_destroyed() -> void:
 	lives -= 1
-	print("Lives: ", lives) # temporary, until it's on the screen
+	update_display()
 	if lives == 0:
 		print("Game over") # temporary
 		$Ship.set_physics_process(false) # stops the ship's script, so it never comes back
+
+# Shows the score and lives on screen.
+func update_display() -> void:
+	$ScoreLabel.text = str(score)
+	$LivesLabel.text = "Lives: " + str(lives)
