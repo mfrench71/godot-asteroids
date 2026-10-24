@@ -3,6 +3,11 @@ extends Node2D
 
 const ROCK_SCENE: PackedScene = preload("res://rock.tscn") # loaded with the script, so making a rock never waits for a file
 const FIRST_WAVE: int = 4 # the arcade starts with 2 rocks per wave and adds 2 before the first
+const POINTS: Array = [100, 50, 20] # the arcade's points for a small, medium and large rock
+const START_LIVES: int = 3 # the arcade starts with 3 or 4 ships, set by a DIP switch
+
+var score: int = 0 # points this game, added from POINTS for every rock hit
+var lives: int = START_LIVES # ships left, counting the one in play
 
 func _ready() -> void:
 	for i in FIRST_WAVE: # runs FIRST_WAVE times; i isn't used
@@ -22,8 +27,10 @@ func spawn_rock() -> void:
 	add_child(rock) # a child of Main, like the shots
 	rock.destroyed.connect(_on_rock_destroyed) # runs each time this rock is hit
 
-# A hit rock splits into two of the next size down, like the arcade. Small ones just go.
+# A hit rock scores its points, then splits into two of the next size down, like the arcade. Small ones just go.
 func _on_rock_destroyed(rock: Rock) -> void:
+	score += POINTS[rock.size]
+	print("Score: ", score) # temporary, until it's on the screen
 	if rock.size == 0:
 		return # a small rock leaves nothing behind
 	for i in 2: # i isn't used
@@ -51,4 +58,8 @@ func to_pixels(speed: Vector2i) -> Vector2:
 
 # Runs when the Ship's destroyed signal fires (connected in the editor, saved in main.tscn).
 func _on_ship_destroyed() -> void:
-	print("Ship destroyed") # temporary: lives coming in Part 12
+	lives -= 1
+	print("Lives: ", lives) # temporary, until it's on the screen
+	if lives == 0:
+		print("Game over") # temporary
+		$Ship.set_physics_process(false) # stops the ship's script, so it never comes back
