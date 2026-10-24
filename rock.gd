@@ -30,10 +30,11 @@ func _ready() -> void:
 	scale = Vector2.ONE * SCALES[size] # shrinks the outline; lines stay 1 pixel wide
 
 # The arcade's hit test: a box with its corners cut off, an octagon, centred on the rock.
-func is_hit_by(point: Vector2) -> bool:
+# extra widens it for something bigger than a dot, like the ship.
+func is_hit_by(point: Vector2, extra: float = 0.0) -> bool:
 	var dx: float = absf(point.x - position.x)
 	var dy: float = absf(point.y - position.y)
-	var h: float = HIT_SIZE[size]
+	var h: float = HIT_SIZE[size] + extra
 	# Inside the box on both axes, and not in one of its cut-off corners.
 	return dx <= h and dy <= h and dx + dy < h * 1.5
 

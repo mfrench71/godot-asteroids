@@ -11,6 +11,7 @@ const SHOT_SPEED: float = 8.07 # the arcade's 63 playfield units per update
 const SHOT_MAX_SPEED: float = 14.22 # the arcade's cap of 111 playfield units per update
 const MAX_SHOTS: int = 4 # the arcade has 4 slots for the player's shots
 const SHOT_START: float = 11.9 # 95 playfield units ahead of the ship's centre
+const SHIP_SIZE: float = 7.0 # the arcade adds 28 to a rock's size for the ship: 28 / 4 pixels
 
 # Speed and direction, in pixels per tick. Outside any function,
 # so the ship keeps drifting from one tick to the next.
@@ -46,6 +47,12 @@ func _physics_process(_delta: float) -> void:
 	var screen_size: Vector2 = get_viewport_rect().size
 	position.x = wrapf(position.x, 0.0, screen_size.x)
 	position.y = wrapf(position.y, 0.0, screen_size.y)
+	# Like the arcade, a rock that touches the ship destroys it, and the rock is hit too.
+	for rock: Rock in get_tree().get_nodes_in_group("rocks"):
+		if rock.is_hit_by(position, SHIP_SIZE):
+			rock.hit()
+			queue_free()
+			return
 	# Fire once per press, if one of the 4 shot slots is free.
 	if Input.is_action_just_pressed("fire") and get_tree().get_nodes_in_group("player_shots").size() < MAX_SHOTS:
 		var bullet: Bullet = BULLET_SCENE.instantiate() as Bullet # a new copy of the shot scene
