@@ -17,7 +17,7 @@ func spawn_rock() -> void:
 		rock.position = Vector2(0.0, randf_range(0.0, screen_size.y))
 	else:
 		rock.position = Vector2(randf_range(0.0, screen_size.x), 0.0)
-	rock.speed = Vector2i(random_speed(), random_speed())
+	rock.speed = Vector2i(random_speed(0), random_speed(0))
 	rock.velocity = to_pixels(rock.speed)
 	add_child(rock) # a child of Main, like the shots
 	rock.destroyed.connect(_on_rock_destroyed) # runs each time this rock is hit
@@ -31,18 +31,18 @@ func _on_rock_destroyed(rock: Rock) -> void:
 		child.size = rock.size - 1 # large to medium, medium to small
 		child.shape = randi_range(0, 3)
 		child.position = rock.position # starts where the old rock was
-		child.speed = Vector2i(random_speed(), random_speed())
+		child.speed = Vector2i(random_speed(rock.speed.x), random_speed(rock.speed.y))
 		child.velocity = to_pixels(child.speed)
 		add_child(child)
 		child.destroyed.connect(_on_rock_destroyed) # so the child can split too
 
-# One axis of a new rock's speed, in playfield units per update: 6 to 15 either way, like the arcade.
-func random_speed() -> int:
-	var units: int = randi_range(-16, 15)
+# One axis of a rock's speed, in playfield units per update: base plus -16 to 15, kept 6 to 31 either way, like the arcade.
+func random_speed(base: int) -> int:
+	var units: int = base + randi_range(-16, 15)
 	if units >= 0:
-		units = maxi(units, 6)
+		units = clampi(units, 6, 31)
 	else:
-		units = mini(units, -6)
+		units = clampi(units, -31, -6)
 	return units
 
 # Playfield units per update to pixels per tick.
