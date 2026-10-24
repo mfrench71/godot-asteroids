@@ -1,4 +1,4 @@
-# Main: the playfield. Starts the first wave of rocks.
+# Main: the playfield. Starts the first wave of rocks, and keeps the score and lives.
 extends Node2D
 
 const ROCK_SCENE: PackedScene = preload("res://rock.tscn") # loaded with the script, so making a rock never waits for a file
@@ -68,7 +68,7 @@ func _on_ship_destroyed() -> void:
 	lives -= 1
 	update_display()
 	if lives == 0:
-		print("Game over") # temporary
+		$GameOverLabel.visible = true # hidden in main.tscn until the last ship goes
 		$Ship.set_physics_process(false) # stops the ship's script, so it never comes back
 
 # Shows the score and lives on screen.

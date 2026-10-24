@@ -26,4 +26,13 @@ offset_bottom = 83.0
 theme_override_font_sizes/font_size = 32
 text = "Lives: 3"
 
+[node name="GameOverLabel" type="Label" parent="." unique_id=797314032]
+visible = false
+offset_left = 380.0
+offset_top = 340.0
+offset_right = 656.0
+offset_bottom = 407.0
+theme_override_font_sizes/font_size = 48
+text = "GAME OVER"
+
 [connection signal="destroyed" from="Ship" to="." method="_on_ship_destroyed"]
