@@ -2,6 +2,10 @@
 
 The Godot project for my blog series [Learning Godot by Rebuilding Asteroids](https://circleseven.co.uk/series/learning-godot-by-rebuilding-asteroids/), where I learn the Godot game engine from scratch by rebuilding Atari's 1979 arcade game as closely as I can.
 
+## Play it
+
+The playable version is called Cosmic Barrage, because Asteroids is still Atari's trademark. From Part 11 on, each part has a build you can play in your browser: [Cosmic Barrage on GitHub Pages](https://mfrench71.github.io/godot-asteroids/). Arrow keys to turn and thrust, Space to fire.
+
 ## The code for each part
 
 Each part of the series has a tag, so you can see the code exactly as it was at the end of that post:
