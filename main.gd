@@ -29,8 +29,14 @@ func spawn_rock() -> void:
 
 # A hit rock scores its points, then splits into two of the next size down, like the arcade. Small ones just go.
 func _on_rock_destroyed(rock: Rock) -> void:
+	var before: int = score
 	score += POINTS[rock.size]
 	print("Score: ", score) # temporary, until it's on the screen
+	# Like the arcade, an extra ship each time the score passes another 10,000.
+	@warning_ignore("integer_division")
+	if score / 10000 > before / 10000:
+		lives += 1
+		print("Extra ship! Lives: ", lives) # temporary
 	if rock.size == 0:
 		return # a small rock leaves nothing behind
 	for i in 2: # i isn't used
