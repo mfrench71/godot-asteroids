@@ -1,18 +1,25 @@
-# Main: the playfield. Starts the first wave of rocks, and keeps the score and lives.
+# Main: the playfield. Starts each wave of rocks, and keeps the score and lives.
 extends Node2D
 
 const ROCK_SCENE: PackedScene = preload("res://rock.tscn") # loaded with the script, so making a rock never waits for a file
-const FIRST_WAVE: int = 4 # the arcade starts with 2 rocks per wave and adds 2 before the first
+const MAX_ROCKS: int = 11 # the arcade never starts a wave with more than 11 rocks
 const POINTS: Array = [100, 50, 20] # the arcade's points for a small, medium and large rock
 const START_LIVES: int = 3 # the arcade starts with 3 or 4 ships, set by a DIP switch
 
 var score: int = 0 # points this game, added from POINTS for every rock hit
 var lives: int = START_LIVES # ships left, counting the one in play
+var rocks_per_wave: int = 2 # like the arcade: starts at 2, and 2 are added before every wave
 
 func _ready() -> void:
-	for i in FIRST_WAVE: # runs FIRST_WAVE times; i isn't used
-		spawn_rock()
+	start_wave()
 	update_display()
+
+# A new wave of large rocks: 2 more than last time, like the arcade, up to MAX_ROCKS.
+func start_wave() -> void:
+	rocks_per_wave += 2
+	rocks_per_wave = mini(rocks_per_wave, MAX_ROCKS)
+	for i in rocks_per_wave: # runs rocks_per_wave times; i isn't used
+		spawn_rock()
 
 func spawn_rock() -> void:
 	var rock: Rock = ROCK_SCENE.instantiate() as Rock
