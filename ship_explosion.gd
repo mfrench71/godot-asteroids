@@ -32,8 +32,8 @@ func _ready() -> void:
 		offsets.append(speed / 16.0) # like the arcade, each piece starts a little way out
 
 func _physics_process(_delta: float) -> void:
-	# The same counter as a rock's, but it only moves on every other tick, so it lasts 56.
-	count += ((256 - count) >> 4) + (ticks & 1)
+	# The same counter as a rock's, but the arcade only adds 1 on every other tick, so it lasts 192.
+	count += ticks & 1
 	ticks += 1
 	if count > 255:
 		queue_free()

@@ -16,7 +16,7 @@ const MAX_SHOTS: int = 4 # the arcade has 4 slots for the player's shots
 const SHOT_START: float = 11.9 # 95 playfield units ahead of the ship's centre
 const SHIP_SIZE: float = 7.0 # the arcade adds 28 to a rock's size for the ship: 28 / 4 pixels
 const START: Vector2 = Vector2(524, 372) # the arcade's start position, $1060 and $0C60 (Part 6)
-const RESPAWN_TICKS: int = 180 # the arcade: a 0.91 s explosion, then 129 updates: 185 updates, 3.0 s
+const RESPAWN_TICKS: int = 313 # the arcade: a 192-update explosion, then 129 updates: 321 updates, 5.2 s. That's 321 / 61.5 x 60 = 313 ticks.
 const SAFE_AREA: Rect2 = Rect2(384, 256, 256, 256) # the arcade's check before the ship comes back: x 384 to 640, y 256 to 512
 
 # Speed and direction, in pixels per tick. Outside any function,
