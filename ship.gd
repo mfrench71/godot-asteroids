@@ -30,7 +30,7 @@ var respawn_ticks: int = 0 # counts down while the ship is gone; 0 while it's in
 var hyperspace_ticks: int = 0 # counts down while the ship is in hyperspace; 0 while it's in play
 
 func _physics_process(_delta: float) -> void:
-	# While the ship is in hyperspace, count down, then come back at the same position, not moving.
+	# While the ship is in hyperspace, count down, then show it again where it landed.
 	if hyperspace_ticks > 0:
 		hyperspace_ticks -= 1
 		if hyperspace_ticks == 0:
@@ -52,6 +52,10 @@ func _physics_process(_delta: float) -> void:
 		visible = false
 		velocity = Vector2.ZERO
 		hyperspace_ticks = HYPERSPACE_TICKS
+		# Like the arcade: a random place in 32-pixel steps, kept away from the edges.
+		var x_steps: int = clampi(randi_range(0, 31), 3, 28)
+		var y_steps: int = clampi(randi_range(0, 31), 3, 20)
+		position = Vector2(x_steps * 32, 768 - y_steps * 32) # the arcade's y goes up, Godot's down
 		return
 	if Input.is_action_pressed("rotate_left"):
 		rotation_degrees -= TURN_SPEED # anticlockwise
