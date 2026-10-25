@@ -18,6 +18,7 @@ const SHIP_SIZE: float = 7.0 # the arcade adds 28 to a rock's size for the ship:
 const START: Vector2 = Vector2(524, 372) # the arcade's start position, $1060 and $0C60 (Part 6)
 const RESPAWN_TICKS: int = 313 # the arcade: a 192-update explosion, then 129 updates: 321 updates, 5.2 s. That's 321 / 61.5 x 60 = 313 ticks.
 const SAFE_AREA: Rect2 = Rect2(384, 256, 256, 256) # the arcade's check before the ship comes back: x 384 to 640, y 256 to 512
+const HYPERSPACE_TICKS: int = 47 # the arcade's $30: 48 updates, 0.78 s
 
 # Speed and direction, in pixels per tick. Outside any function,
 # so the ship keeps drifting from one tick to the next.
@@ -26,8 +27,15 @@ var thrusting: bool = false # true while Up is held
 var ticks: int = 0 # counts every tick, like the arcade's frame counter
 var flame_on: bool = false # whether _draw draws the flame
 var respawn_ticks: int = 0 # counts down while the ship is gone; 0 while it's in play
+var hyperspace_ticks: int = 0 # counts down while the ship is in hyperspace; 0 while it's in play
 
 func _physics_process(_delta: float) -> void:
+	# While the ship is in hyperspace, count down, then come back at the same position, not moving.
+	if hyperspace_ticks > 0:
+		hyperspace_ticks -= 1
+		if hyperspace_ticks == 0:
+			visible = true
+		return
 	# While the ship is gone, count down, then come back at the start, not moving.
 	if respawn_ticks > 0:
 		respawn_ticks -= 1
@@ -38,6 +46,12 @@ func _physics_process(_delta: float) -> void:
 				visible = true
 			else:
 				respawn_ticks = 1 # a rock is in the way: try again next tick, like the arcade
+		return
+	# Hyperspace while the button is held, like the arcade, which checks the button, not a press.
+	if Input.is_action_pressed("hyperspace"):
+		visible = false
+		velocity = Vector2.ZERO
+		hyperspace_ticks = HYPERSPACE_TICKS
 		return
 	if Input.is_action_pressed("rotate_left"):
 		rotation_degrees -= TURN_SPEED # anticlockwise
