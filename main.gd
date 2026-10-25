@@ -5,14 +5,25 @@ const ROCK_SCENE: PackedScene = preload("res://rock.tscn") # loaded with the scr
 const MAX_ROCKS: int = 11 # the arcade never starts a wave with more than 11 rocks
 const POINTS: Array = [100, 50, 20] # the arcade's points for a small, medium and large rock
 const START_LIVES: int = 3 # the arcade starts with 3 or 4 ships, set by a DIP switch
+const WAVE_TICKS: int = 124 # the arcade waits 127 updates after the last rock: 127 / 61.5 x 60
 
 var score: int = 0 # points this game, added from POINTS for every rock hit
 var lives: int = START_LIVES # ships left, counting the one in play
 var rocks_per_wave: int = 2 # like the arcade: starts at 2, and 2 are added before every wave
+var wave_ticks: int = 0 # counts down to the next wave; 0 when no wave is waiting
 
 func _ready() -> void:
 	start_wave()
 	update_display()
+
+# Waits WAVE_TICKS after the last rock has gone, then starts the next wave.
+func _physics_process(_delta: float) -> void:
+	if wave_ticks > 0:
+		wave_ticks -= 1
+		if wave_ticks == 0:
+			start_wave()
+	elif get_tree().get_nodes_in_group("rocks").is_empty():
+		wave_ticks = WAVE_TICKS # the last rock has gone: start the countdown
 
 # A new wave of large rocks: 2 more than last time, like the arcade, up to MAX_ROCKS.
 func start_wave() -> void:
