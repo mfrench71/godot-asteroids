@@ -87,12 +87,7 @@ func _physics_process(_delta: float) -> void:
 	for rock: Rock in get_tree().get_nodes_in_group("rocks"):
 		if rock.is_hit_by(position, SHIP_SIZE):
 			rock.hit()
-			destroyed.emit()
-			visible = false # off the screen, but the node stays, so it can come back
-			respawn_ticks = RESPAWN_TICKS
-			var ship_explosion: ShipExplosion = SHIP_EXPLOSION_SCENE.instantiate() as ShipExplosion
-			ship_explosion.position = position # show the explosion where the ship was
-			get_parent().add_child(ship_explosion) # into Main, like the bullets, so it shows while the ship is hidden
+			explode()
 			return
 	# Fire once per press, if one of the 4 shot slots is free.
 	if Input.is_action_just_pressed("fire") and get_tree().get_nodes_in_group("player_shots").size() < MAX_SHOTS:
@@ -110,6 +105,15 @@ func start_is_clear() -> bool:
 		if SAFE_AREA.has_point(rock.position):
 			return false
 	return true
+
+# The ship is destroyed: tells Main, hides the ship, starts the respawn wait and shows the explosion.
+func explode() -> void:
+	destroyed.emit()
+	visible = false # off the screen, but the node stays, so it can come back
+	respawn_ticks = RESPAWN_TICKS
+	var ship_explosion: ShipExplosion = SHIP_EXPLOSION_SCENE.instantiate() as ShipExplosion
+	ship_explosion.position = position # show the explosion where the ship was
+	get_parent().add_child(ship_explosion) # into Main, like the bullets, so it shows while the ship is hidden
 
 func _draw() -> void:
 	# The nose points right because a rotation of 0 faces right.
