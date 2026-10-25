@@ -9,6 +9,7 @@ const THRUST: float = 0.065 # reaches top speed in 2.08 s, like the arcade (pixe
 const DRAG: float = 0.996 # the arcade's x 127/128 every 2nd update (speed kept each tick when not thrusting)
 const MAX_SPEED: float = 8.07 # the arcade's max speed: capped at $3F playfield units per update
 const BULLET_SCENE: PackedScene = preload("res://bullet.tscn") # loaded with the script, so firing never waits for a file
+const SHIP_EXPLOSION_SCENE: PackedScene = preload("res://ship_explosion.tscn") # loaded with the script, so exploding never waits for a file
 const SHOT_SPEED: float = 8.07 # the arcade's 63 playfield units per update
 const SHOT_MAX_SPEED: float = 14.22 # the arcade's cap of 111 playfield units per update
 const MAX_SHOTS: int = 4 # the arcade has 4 slots for the player's shots
@@ -71,6 +72,9 @@ func _physics_process(_delta: float) -> void:
 			destroyed.emit()
 			visible = false # off the screen, but the node stays, so it can come back
 			respawn_ticks = RESPAWN_TICKS
+			var ship_explosion: ShipExplosion = SHIP_EXPLOSION_SCENE.instantiate() as ShipExplosion
+			ship_explosion.position = position # show the explosion where the ship was
+			get_parent().add_child(ship_explosion) # into Main, like the bullets, so it shows while the ship is hidden
 			return
 	# Fire once per press, if one of the 4 shot slots is free.
 	if Input.is_action_just_pressed("fire") and get_tree().get_nodes_in_group("player_shots").size() < MAX_SHOTS:

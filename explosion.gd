@@ -19,7 +19,7 @@ const DOTS: Array = [
 var count: int = 0xA0 # the arcade's explosion counter: starts at $A0 (160), done when it passes 255
 
 func _ready() -> void:
-	add_to_group("explosions") # so wave countdown can check for completed explosions
+	add_to_group("explosions") # so the wave countdown can wait for running explosions
 
 func _physics_process(_delta: float) -> void:
 	# Like the arcade: big steps at first, then smaller and smaller ones, 38 in all.
