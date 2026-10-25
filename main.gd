@@ -2,6 +2,7 @@
 extends Node2D
 
 const ROCK_SCENE: PackedScene = preload("res://rock.tscn") # loaded with the script, so making a rock never waits for a file
+const EXPLOSION_SCENE: PackedScene = preload("res://explosion.tscn") # like ROCK_SCENE, loaded with the script
 const MAX_ROCKS: int = 11 # the arcade never starts a wave with more than 11 rocks
 const POINTS: Array = [100, 50, 20] # the arcade's points for a small, medium and large rock
 const START_LIVES: int = 3 # the arcade starts with 3 or 4 ships, set by a DIP switch
@@ -46,8 +47,11 @@ func spawn_rock() -> void:
 	add_child(rock) # a child of Main, like the shots
 	rock.destroyed.connect(_on_rock_destroyed) # runs each time this rock is hit
 
-# A hit rock scores its points, then splits into two of the next size down, like the arcade. Small ones just go.
+# A hit rock explodes, scores its points, then splits into two of the next size down, like the arcade. Small ones just go.
 func _on_rock_destroyed(rock: Rock) -> void:
+	var explosion: Explosion = EXPLOSION_SCENE.instantiate() as Explosion
+	explosion.position = rock.position # show the explosion where the rock was
+	add_child(explosion) # a child of Main, like the rocks
 	var before: int = score
 	score += POINTS[rock.size]
 	# Like the arcade, an extra ship each time the score passes another 10,000.
