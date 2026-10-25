@@ -28,13 +28,17 @@ var ticks: int = 0 # counts every tick, like the arcade's frame counter
 var flame_on: bool = false # whether _draw draws the flame
 var respawn_ticks: int = 0 # counts down while the ship is gone; 0 while it's in play
 var hyperspace_ticks: int = 0 # counts down while the ship is in hyperspace; 0 while it's in play
+var hyperspace_fails: bool = false # decided when the ship jumps, like the arcade
 
 func _physics_process(_delta: float) -> void:
 	# While the ship is in hyperspace, count down, then show it again where it landed.
 	if hyperspace_ticks > 0:
 		hyperspace_ticks -= 1
 		if hyperspace_ticks == 0:
-			visible = true
+			if hyperspace_fails:
+				explode()
+			else:
+				visible = true
 		return
 	# While the ship is gone, count down, then come back at the start, not moving.
 	if respawn_ticks > 0:
@@ -54,7 +58,15 @@ func _physics_process(_delta: float) -> void:
 		hyperspace_ticks = HYPERSPACE_TICKS
 		# Like the arcade: a random place in 32-pixel steps, kept away from the edges.
 		var x_steps: int = clampi(randi_range(0, 31), 3, 28)
-		var y_steps: int = clampi(randi_range(0, 31), 3, 20)
+		# Like the arcade, the same random number decides y and whether the jump fails.
+		var r: int = randi_range(0, 31)
+		hyperspace_fails = false
+		if r >= 24: # 1 in 4 jumps are risky
+			r = (r & 7) * 2 + 4 # 4, 6, 8 .. 18
+			# The arcade counts rocks that are still exploding, so count both groups.
+			var rocks: int = get_tree().get_nodes_in_group("rocks").size() + get_tree().get_nodes_in_group("explosions").size()
+			hyperspace_fails = r >= rocks
+		var y_steps: int = clampi(r, 3, 20)
 		position = Vector2(x_steps * 32, 768 - y_steps * 32) # the arcade's y goes up, Godot's down
 		return
 	if Input.is_action_pressed("rotate_left"):
