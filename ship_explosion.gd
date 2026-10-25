@@ -37,7 +37,12 @@ func _physics_process(_delta: float) -> void:
 	ticks += 1
 	if count > 255:
 		queue_free()
+		return # so a finished explosion doesn't move again
+	for i in offsets.size():
+		offsets[i] += SPEEDS[i] / 256.0 # the arcade's speeds are in 1/256 pixels
+	queue_redraw() # the pieces have moved
 
 func _draw() -> void:
-	for i in PIECES.size():
+	var shown: int = 16 - (count >> 4) # A to F: 6 pieces down to 1, like the arcade
+	for i in shown:
 		draw_line(offsets[i], offsets[i] + PIECES[i], Color.WHITE)
