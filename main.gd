@@ -17,14 +17,14 @@ func _ready() -> void:
 	start_wave()
 	update_display()
 
-# Waits WAVE_TICKS after the last rock has gone, then starts the next wave.
+# Waits WAVE_TICKS after the last rock and explosion have gone, then starts the next wave.
 func _physics_process(_delta: float) -> void:
 	if wave_ticks > 0:
 		wave_ticks -= 1
 		if wave_ticks == 0:
 			start_wave()
-	elif get_tree().get_nodes_in_group("rocks").is_empty():
-		wave_ticks = WAVE_TICKS # the last rock has gone: start the countdown
+	elif get_tree().get_nodes_in_group("rocks").is_empty() and get_tree().get_nodes_in_group("explosions").is_empty():
+		wave_ticks = WAVE_TICKS # the last rock and explosion have gone: start the countdown
 
 # A new wave of large rocks: 2 more than last time, like the arcade, up to MAX_ROCKS.
 func start_wave() -> void:
