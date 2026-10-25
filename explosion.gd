@@ -16,13 +16,20 @@ const DOTS: Array = [
 	Vector2(-32, -32),
 ]
 
-var ticks_left: int = 38 # the arcade's explosion lasts 38 updates
+var count: int = 0xA0 # the arcade's explosion counter: starts at $A0 (160), done when it passes 255
 
 func _physics_process(_delta: float) -> void:
-	ticks_left -= 1
-	if ticks_left <= 0:
+	# Like the arcade: big steps at first, then smaller and smaller ones, 38 in all.
+	count += ((256 - count) >> 4) + 1
+	if count > 255:
 		queue_free()
+		return # so a finished explosion isn't drawn again
+	queue_redraw() # the dots have spread a little further
 
 func _draw() -> void:
+	# Like the arcade: six sizes, each double the last, with four steps in between each.
+	var band: int = count >> 4 # 10 to 15: the first hex digit of count
+	var step: int = (count >> 2) & 3 # 0 to 3, counting up within the band
+	var spread: float = pow(2.0, band - 15) * (10 + 2 * step) / 16.0
 	for dot: Vector2 in DOTS:
-		draw_circle(dot, 1.0, Color.WHITE) # a dot, like a shot
+		draw_circle(dot * spread, 1.0, Color.WHITE) # a dot, like a shot
