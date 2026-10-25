@@ -25,6 +25,7 @@ Each part of the series has a tag, so you can see the code exactly as it was at 
 | `part-11` | [Part 11: The Ship Is Hit](https://circleseven.co.uk/learning-godot-by-rebuilding-asteroids-part-11-the-ship-is-hit/) |
 | `part-12` | [Part 12: Score and Lives](https://circleseven.co.uk/learning-godot-by-rebuilding-asteroids-part-12-score-and-lives/) |
 | `part-13` | [Part 13: Making Waves](https://circleseven.co.uk/learning-godot-by-rebuilding-asteroids-part-13-making-waves/) |
+| `part-14` | [Part 14: Explosions](https://circleseven.co.uk/learning-godot-by-rebuilding-asteroids-part-14-explosions/) |
 
 There's also an aside about the arcade machine itself: [Inside the Arcade Machine](https://circleseven.co.uk/learning-godot-by-rebuilding-asteroids-aside-inside-the-arcade-machine/).
 
