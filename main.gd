@@ -1,4 +1,4 @@
-# Main: the playfield. Starts each wave of rocks, and keeps the score and lives.
+# Main: the playfield. Starts each wave of rocks, shows the saucers, and keeps the score and lives.
 extends Node2D
 
 const ROCK_SCENE: PackedScene = preload("res://rock.tscn") # loaded with the script, so making a rock never waits for a file
