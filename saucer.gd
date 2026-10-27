@@ -2,6 +2,8 @@
 class_name Saucer
 extends Node2D
 
+signal gone # tells Main this saucer went off the side
+
 # The arcade's saucer outline, from the vector ROM, with y flipped for Godot.
 # 80 across at the ROM's own size; the arcade draws it at half (large) or a quarter (small).
 const OUTLINE: Array = [
@@ -25,6 +27,7 @@ const TURN_TICKS: int = 125 # the arcade turns every 128 updates: 128 / 61.5 x 6
 var speed: Vector2i = Vector2i.ZERO # playfield units per update, like a rock's
 
 func _ready() -> void:
+	add_to_group("saucers") # so Main can tell whether a saucer is on screen
 	scale = Vector2.ONE * (0.25 if small else 0.5) # 20 or 40 pixels across; lines stay 1 pixel wide
 	var screen_size: Vector2 = get_viewport_rect().size
 	# Like the arcade: in at the left edge heading right, or at the right edge heading left.
@@ -49,6 +52,7 @@ func _physics_process(_delta: float) -> void:
 	var screen_size: Vector2 = get_viewport_rect().size
 	position.y = wrapf(position.y, 0.0, screen_size.y) # off the top, back on the bottom, and the other way
 	if position.x < 0.0 or position.x > screen_size.x:
+		gone.emit() # Main's handler runs now, before the next line
 		queue_free() # off the left or right edge: this saucer has gone
 
 func _draw() -> void:
