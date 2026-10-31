@@ -64,17 +64,8 @@ func spawn_rock() -> void:
 # A hit rock explodes, scores its points, then splits into two of the next size down, like the arcade. Small ones just go.
 func _on_rock_destroyed(rock: Rock) -> void:
 	rock_hit_timer = ROCK_HIT_WAIT # a rock was hit: put off the saucer
-	var explosion: Explosion = EXPLOSION_SCENE.instantiate() as Explosion
-	explosion.position = rock.position # show the explosion where the rock was
-	add_child(explosion) # a child of Main, like the rocks
-	var before: int = score
-	score += POINTS[rock.size]
-	# Like the arcade, an extra ship each time the score passes another 10,000.
-	# Dividing ints drops the fraction, which is the point here: it counts whole 10,000s.
-	@warning_ignore("integer_division")
-	if score / 10000 > before / 10000:
-		lives += 1
-	update_display()
+	spawn_explosion(rock.position) # where the rock was
+	add_score(POINTS[rock.size])
 	if rock.size == 0:
 		return # a small rock leaves nothing behind
 	for i in 2: # i isn't used
@@ -86,6 +77,22 @@ func _on_rock_destroyed(rock: Rock) -> void:
 		child.velocity = to_pixels(child.speed)
 		add_child(child)
 		child.destroyed.connect(_on_rock_destroyed) # so the child can split too
+
+# One explosion, the same for a rock or a saucer.
+func spawn_explosion(at: Vector2) -> void:
+	var explosion: Explosion = EXPLOSION_SCENE.instantiate() as Explosion
+	explosion.position = at
+	add_child(explosion) # a child of Main, like the rocks
+
+# Adds points, with an extra ship each time the score passes another 10,000, like the arcade.
+func add_score(points: int) -> void:
+	var before: int = score
+	score += points
+	# Dividing ints drops the fraction, which is the point here: it counts whole 10,000s.
+	@warning_ignore("integer_division")
+	if score / 10000 > before / 10000:
+		lives += 1
+	update_display()
 
 # Counts down to the next chance of a saucer, and sends one if the arcade's rules say so.
 func count_to_saucer() -> void:
@@ -108,6 +115,7 @@ func spawn_saucer() -> void:
 	saucer.small = pick_small() # before add_child, so the saucer's _ready sees it
 	add_child(saucer) # the saucer picks its own side and height in _ready
 	saucer.gone.connect(_on_saucer_gone)
+	saucer.destroyed.connect(_on_saucer_destroyed)
 
 # Like the arcade: the first saucers are large, then a random roll that favours small ones more and more,
 # and from 30,000 points every saucer is small.
@@ -120,6 +128,12 @@ func pick_small() -> bool:
 
 # Runs when a saucer goes off the side: the wait for the next one starts again.
 func _on_saucer_gone() -> void:
+	saucer_timer = saucer_time_reload
+
+# Runs when a shot hits a saucer: it explodes and scores, and the wait for the next one starts again.
+func _on_saucer_destroyed(saucer: Saucer) -> void:
+	spawn_explosion(saucer.position)
+	add_score(1000 if saucer.small else 200) # the arcade's points: 1000 for a small saucer, 200 for a large
 	saucer_timer = saucer_time_reload
 
 # One axis of a rock's speed, in playfield units per update: base plus -16 to 15, kept 6 to 31 either way, like the arcade.

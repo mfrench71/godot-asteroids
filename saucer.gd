@@ -3,6 +3,7 @@ class_name Saucer
 extends Node2D
 
 signal gone # tells Main this saucer went off the side
+signal destroyed(saucer: Saucer) # tells Main a shot hit this saucer
 
 # The arcade's saucer outline, from the vector ROM, with y flipped for Godot.
 # 80 across at the ROM's own size; the arcade draws it at half (large) or a quarter (small).
@@ -21,6 +22,10 @@ const OUTLINE: Array = [
 const SPEED: int = 16 # playfield units per update, like a rock's speed; 2 pixels
 const TURNS: Array = [-SPEED, 0, 0, SPEED] # the arcade's table: up, level, level or down, picked at random
 const TURN_TICKS: int = 125 # the arcade turns every 128 updates: 128 / 61.5 x 60
+# Half the width of the area a shot has to land in. The arcade's 72 and 42 units, x 2 / 8 like a rock's:
+# a large saucer is as easy to hit as a medium rock, a small one as a small rock.
+const HIT_SIZE_LARGE: float = 18.0
+const HIT_SIZE_SMALL: float = 10.5
 
 @export var small: bool = false # the arcade's two saucers: large (200 points) or small (1000)
 
@@ -43,6 +48,19 @@ func _ready() -> void:
 	if row >= 24:
 		row &= 23
 	position.y = screen_size.y - row * 32.0
+
+# The arcade's hit test, the same octagon as a rock's.
+# extra widens it for something bigger than a dot, like the ship.
+func is_hit_by(point: Vector2, extra: float = 0.0) -> bool:
+	var dx: float = absf(point.x - position.x)
+	var dy: float = absf(point.y - position.y)
+	var h: float = (HIT_SIZE_SMALL if small else HIT_SIZE_LARGE) + extra
+	return dx <= h and dy <= h and dx + dy < h * 1.5
+
+# Called by the shot that hits this saucer.
+func hit() -> void:
+	destroyed.emit(self) # Main's handler runs now, before the next line
+	queue_free()
 
 func _physics_process(_delta: float) -> void:
 	# Like the arcade, a new up-or-down on the game's clock, not counted from when this saucer came.

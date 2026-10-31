@@ -1,4 +1,4 @@
-# One player shot: flies straight, wraps, hits a rock, and lasts about 1.17 seconds.
+# One player shot: flies straight, wraps, hits a rock or saucer, and lasts about 1.17 seconds.
 class_name Bullet
 extends Node2D
 
@@ -20,6 +20,12 @@ func _physics_process(_delta: float) -> void:
 	var screen_size: Vector2 = get_viewport_rect().size
 	position.x = wrapf(position.x, 0.0, screen_size.x)
 	position.y = wrapf(position.y, 0.0, screen_size.y)
+	# Like the arcade, a shot checks the saucer before the rocks.
+	for saucer: Saucer in get_tree().get_nodes_in_group("saucers"):
+		if saucer.is_hit_by(position):
+			saucer.hit()
+			queue_free()
+			return
 	# Like the arcade, a shot can hit one rock, and both go.
 	for rock: Rock in get_tree().get_nodes_in_group("rocks"):
 		if rock.is_hit_by(position):
