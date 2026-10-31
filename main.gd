@@ -105,8 +105,18 @@ func spawn_saucer() -> void:
 	if saucer_time_reload - 6 >= 32:
 		saucer_time_reload -= 6
 	var saucer: Saucer = SAUCER_SCENE.instantiate() as Saucer
+	saucer.small = pick_small() # before add_child, so the saucer's _ready sees it
 	add_child(saucer) # the saucer picks its own side and height in _ready
 	saucer.gone.connect(_on_saucer_gone)
+
+# Like the arcade: the first saucers are large, then a random roll that favours small ones more and more,
+# and from 30,000 points every saucer is small.
+func pick_small() -> bool:
+	if saucer_time_reload >= 128:
+		return false # the first three saucers: 140, 134 and 128
+	if score >= 30000:
+		return true
+	return (saucer_time_reload >> 1) < randi_range(0, 255) # small unless half the reload is at least the roll
 
 # Runs when a saucer goes off the side: the wait for the next one starts again.
 func _on_saucer_gone() -> void:
