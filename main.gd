@@ -34,7 +34,7 @@ func _physics_process(_delta: float) -> void:
 	elif get_tree().get_nodes_in_group("rocks").is_empty() and get_tree().get_nodes_in_group("explosions").is_empty():
 		wave_ticks = WAVE_TICKS # the last rock and explosion have gone: start the countdown
 	# Like the arcade, the saucer's timers count every 4th tick, while there's no saucer and the ship is in play.
-	if Engine.get_physics_frames() % 4 == 0 and $Ship.visible and get_tree().get_nodes_in_group("saucers").is_empty():
+	if Engine.get_physics_frames() % 4 == 0 and $Ship.visible and no_saucer():
 		count_to_saucer()
 
 # A new wave of large rocks: 2 more than last time, like the arcade, up to MAX_ROCKS.
@@ -78,11 +78,12 @@ func _on_rock_destroyed(rock: Rock) -> void:
 		add_child(child)
 		child.destroyed.connect(_on_rock_destroyed) # so the child can split too
 
-# One explosion, the same for a rock or a saucer.
-func spawn_explosion(at: Vector2) -> void:
+# One explosion, the same for a rock or a saucer. Returns it, for anything that needs to change it.
+func spawn_explosion(at: Vector2) -> Explosion:
 	var explosion: Explosion = EXPLOSION_SCENE.instantiate() as Explosion
 	explosion.position = at
 	add_child(explosion) # a child of Main, like the rocks
+	return explosion
 
 # Adds points, with an extra ship each time the score passes another 10,000, like the arcade.
 func add_score(points: int) -> void:
@@ -107,6 +108,10 @@ func count_to_saucer() -> void:
 	if rock_hit_timer == 0 or (rocks > 0 and rocks < max_rocks_for_ufo):
 		spawn_saucer()
 
+# Like the arcade's one place for a saucer: empty when no saucer is flying and none is exploding.
+func no_saucer() -> bool:
+	return get_tree().get_nodes_in_group("saucers").is_empty() and get_tree().get_nodes_in_group("saucer_explosions").is_empty()
+
 func spawn_saucer() -> void:
 	# Each saucer brings the next one sooner, like the arcade, but never sooner than 32.
 	if saucer_time_reload - 6 >= 32:
@@ -126,15 +131,19 @@ func pick_small() -> bool:
 		return true
 	return (saucer_time_reload >> 1) < randi_range(0, 255) # small unless half the reload is at least the roll
 
-# Runs when a saucer goes off the side: the wait for the next one starts again.
+# Runs when a saucer goes off the side, or when a saucer's explosion has gone: the wait for the next one starts again.
 func _on_saucer_gone() -> void:
 	saucer_timer = saucer_time_reload
 
-# Runs when a shot hits a saucer: it explodes and scores, and the wait for the next one starts again.
+# Runs when a shot hits a saucer: it explodes and scores.
 func _on_saucer_destroyed(saucer: Saucer) -> void:
-	spawn_explosion(saucer.position)
+	var explosion: Explosion = spawn_explosion(saucer.position)
+	# Like the arcade, the explosion takes the saucer's place: no new saucer while it lasts,
+	# and the next wave doesn't wait for it, because that only waits for rocks.
+	explosion.remove_from_group("explosions")
+	explosion.add_to_group("saucer_explosions")
+	explosion.tree_exited.connect(_on_saucer_gone) # when it has gone, the wait for the next saucer starts
 	add_score(1000 if saucer.small else 200) # the arcade's points: 1000 for a small saucer, 200 for a large
-	saucer_timer = saucer_time_reload
 
 # One axis of a rock's speed, in playfield units per update: base plus -16 to 15, kept 6 to 31 either way, like the arcade.
 func random_speed(base: int) -> int:
