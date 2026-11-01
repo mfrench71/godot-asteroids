@@ -2,7 +2,7 @@
 class_name Rock
 extends Node2D
 
-signal destroyed(rock: Rock) # tells Main a shot hit this rock
+signal destroyed(rock: Rock, scored: bool) # tells Main this rock was hit, and whether that scores
 
 # The arcade's four rock shapes, from the vector ROM, with y flipped for Godot.
 # A large rock is drawn at the ROM's own size: 64 pixels across.
@@ -32,15 +32,17 @@ func _ready() -> void:
 # The arcade's hit test: a box with its corners cut off, an octagon, centred on the rock.
 # extra widens it for something bigger than a dot, like the ship.
 func is_hit_by(point: Vector2, extra: float = 0.0) -> bool:
+	if is_queued_for_deletion():
+		return false # already hit this tick: it goes at the end of the tick, so nothing else can hit it
 	var dx: float = absf(point.x - position.x)
 	var dy: float = absf(point.y - position.y)
 	var h: float = HIT_SIZE[size] + extra
 	# Inside the box on both axes, and not in one of its cut-off corners.
 	return dx <= h and dy <= h and dx + dy < h * 1.5
 
-# Called by the shot that hits this rock.
-func hit() -> void:
-	destroyed.emit(self) # Main's handler runs now, before the next line
+# Called by whatever hits this rock. scored is false when the saucer hit it: the arcade only scores for the player.
+func hit(scored: bool = true) -> void:
+	destroyed.emit(self, scored) # Main's handler runs now, before the next line
 	queue_free()
 
 func _physics_process(_delta: float) -> void:

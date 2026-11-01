@@ -61,11 +61,12 @@ func spawn_rock() -> void:
 	add_child(rock) # a child of Main, like the shots
 	rock.destroyed.connect(_on_rock_destroyed) # runs each time this rock is hit
 
-# A hit rock explodes, scores its points, then splits into two of the next size down, like the arcade. Small ones just go.
-func _on_rock_destroyed(rock: Rock) -> void:
-	rock_hit_timer = ROCK_HIT_WAIT # a rock was hit: put off the saucer
+# A hit rock explodes, scores unless a saucer hit it, then splits into two of the next size down, like the arcade. Small ones just go.
+func _on_rock_destroyed(rock: Rock, scored: bool) -> void:
+	rock_hit_timer = ROCK_HIT_WAIT # a rock was hit, even by the saucer: put off the saucer
 	spawn_explosion(rock.position) # where the rock was
-	add_score(POINTS[rock.size])
+	if scored:
+		add_score(POINTS[rock.size])
 	if rock.size == 0:
 		return # a small rock leaves nothing behind
 	for i in 2: # i isn't used
@@ -135,15 +136,16 @@ func pick_small() -> bool:
 func _on_saucer_gone() -> void:
 	saucer_timer = saucer_time_reload
 
-# Runs when a shot hits a saucer: it explodes and scores.
-func _on_saucer_destroyed(saucer: Saucer) -> void:
+# Runs when a shot or rock hits a saucer: it explodes and scores unless it ran into a rock.
+func _on_saucer_destroyed(saucer: Saucer, scored: bool) -> void:
 	var explosion: Explosion = spawn_explosion(saucer.position)
 	# Like the arcade, the explosion takes the saucer's place: no new saucer while it lasts,
 	# and the next wave doesn't wait for it, because that only waits for rocks.
 	explosion.remove_from_group("explosions")
 	explosion.add_to_group("saucer_explosions")
 	explosion.tree_exited.connect(_on_saucer_gone) # when it has gone, the wait for the next saucer starts
-	add_score(1000 if saucer.small else 200) # the arcade's points: 1000 for a small saucer, 200 for a large
+	if scored:
+		add_score(1000 if saucer.small else 200) # the arcade's points: 1000 for a small saucer, 200 for a large
 
 # One axis of a rock's speed, in playfield units per update: base plus -16 to 15, kept 6 to 31 either way, like the arcade.
 func random_speed(base: int) -> int:

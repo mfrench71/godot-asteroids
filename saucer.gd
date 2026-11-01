@@ -3,7 +3,7 @@ class_name Saucer
 extends Node2D
 
 signal gone # tells Main this saucer went off the side
-signal destroyed(saucer: Saucer) # tells Main a shot hit this saucer
+signal destroyed(saucer: Saucer, scored: bool) # tells Main this saucer was hit, and whether that scores
 
 # The arcade's saucer outline, from the vector ROM, with y flipped for Godot.
 # 80 across at the ROM's own size; the arcade draws it at half (large) or a quarter (small).
@@ -26,6 +26,9 @@ const TURN_TICKS: int = 125 # the arcade turns every 128 updates: 128 / 61.5 x 6
 # a large saucer is as easy to hit as a medium rock, a small one as a small rock.
 const HIT_SIZE_LARGE: float = 18.0
 const HIT_SIZE_SMALL: float = 10.5
+# How much bigger the saucer makes what it runs into: the arcade adds 37 or 19 units, / 4 for pixels.
+const EXTRA_LARGE: float = 9.25
+const EXTRA_SMALL: float = 4.75
 
 @export var small: bool = false # the arcade's two saucers: large (200 points) or small (1000)
 
@@ -52,17 +55,21 @@ func _ready() -> void:
 # The arcade's hit test, the same octagon as a rock's.
 # extra widens it for something bigger than a dot, like the ship.
 func is_hit_by(point: Vector2, extra: float = 0.0) -> bool:
+	if is_queued_for_deletion():
+		return false # already hit this tick: it goes at the end of the tick, so nothing else can hit it
 	var dx: float = absf(point.x - position.x)
 	var dy: float = absf(point.y - position.y)
 	var h: float = (HIT_SIZE_SMALL if small else HIT_SIZE_LARGE) + extra
 	return dx <= h and dy <= h and dx + dy < h * 1.5
 
-# Called by the shot that hits this saucer.
-func hit() -> void:
-	destroyed.emit(self) # Main's handler runs now, before the next line
+# Called by whatever hits this saucer. scored is false when it ran into a rock.
+func hit(scored: bool = true) -> void:
+	destroyed.emit(self, scored) # Main's handler runs now, before the next line
 	queue_free()
 
 func _physics_process(_delta: float) -> void:
+	if is_queued_for_deletion():
+		return # shot earlier this tick: it's exploding now, so it can't run into anything
 	# Like the arcade, a new up-or-down on the game's clock, not counted from when this saucer came.
 	if Engine.get_physics_frames() % TURN_TICKS == 0:
 		speed.y = TURNS[randi_range(0, 3)]
@@ -72,6 +79,13 @@ func _physics_process(_delta: float) -> void:
 	if position.x < 0.0 or position.x > screen_size.x:
 		gone.emit() # Main's handler runs now, before the next line
 		queue_free() # off the left or right edge: this saucer has gone
+		return # a saucer that has gone can't run into anything
+	# Like the arcade, a saucer that runs into a rock explodes and the rock splits, but no one scores.
+	for rock: Rock in get_tree().get_nodes_in_group("rocks"):
+		if rock.is_hit_by(position, EXTRA_SMALL if small else EXTRA_LARGE):
+			rock.hit(false)
+			hit(false)
+			return
 
 func _draw() -> void:
 	draw_polyline(PackedVector2Array(OUTLINE), Color.WHITE) # the outline, joined end to end
