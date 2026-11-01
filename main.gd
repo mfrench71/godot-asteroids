@@ -11,7 +11,7 @@ const WAVE_TICKS: int = 124 # the arcade waits 127 updates after the last rock: 
 const ROCK_HIT_WAIT: int = 80 # the arcade's $50: a saucer comes once no rock has been hit for this long
 const SAUCER_RETRY: int = 18 # the arcade's $12: when it isn't time for a saucer, look again after this many
 
-var score: int = 0 # points this game, added from POINTS for every rock hit
+var score: int = 0 # points this game: rocks score from POINTS, saucers 200 or 1000
 var lives: int = START_LIVES # ships left, counting the one in play
 var rocks_per_wave: int = 2 # like the arcade: starts at 2, and 2 are added before every wave
 var wave_ticks: int = 0 # counts down to the next wave; 0 when no wave is waiting

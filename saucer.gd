@@ -1,4 +1,4 @@
-# The flying saucer: large or small. Comes in from one side, wanders up and down, and leaves at the other.
+# The flying saucer: large or small. Comes in from one side, wanders up and down, and leaves at the other, unless it's hit first.
 class_name Saucer
 extends Node2D
 
