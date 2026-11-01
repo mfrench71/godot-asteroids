@@ -9,8 +9,11 @@ const LIVES_AT: Vector2 = Vector2(160, 54)
 const LIVES_GAP: float = 16.0 # each ship 16 to the right of the last, so their fins touch
 # The arcade's spare ship, from the vector ROM: the ship's own outline, turned to point up.
 const SHIP_ICON: Array = [Vector2(-4, 6), Vector2(4, 6), Vector2(8, 10), Vector2(0, -14), Vector2(-8, 10), Vector2(-4, 6)]
-# Where the arcade writes GAME OVER: x 400, and 628 up its screen.
-const GAME_OVER_AT: Vector2 = Vector2(400, 278)
+# Where the arcade writes each message, from its table at $7871: x, and 906 - its y.
+const MESSAGES: Dictionary = {
+	"PUSH START": Vector2(400, 114),
+	"GAME OVER": Vector2(400, 278),
+}
 
 var score: int = 0:
 	set(value):
@@ -22,10 +25,10 @@ var lives: int = 0:
 		lives = value
 		queue_redraw() # one ship more or fewer
 
-var game_over: bool = false:
+var message: String = "":
 	set(value):
-		game_over = value
-		queue_redraw() # show or hide GAME OVER
+		message = value
+		queue_redraw() # show the new message, or none
 
 func _draw() -> void:
 	# Like the arcade: the score is kept in tens, with a "0" drawn after it, so 0 shows as "00".
@@ -38,5 +41,5 @@ func _draw() -> void:
 		draw_set_transform(LIVES_AT + Vector2(i * LIVES_GAP, 0)) # draw this one from here
 		draw_polyline(PackedVector2Array(SHIP_ICON), Color.WHITE)
 	draw_set_transform(Vector2.ZERO) # back to normal, for anything drawn after
-	if game_over:
-		VectorFont.draw_text(self, "GAME OVER", GAME_OVER_AT, TEXT_SIZE)
+	if message != "":
+		VectorFont.draw_text(self, message, MESSAGES[message], TEXT_SIZE)

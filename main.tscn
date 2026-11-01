@@ -14,4 +14,9 @@ rotation = -1.5707964
 [node name="Display" type="Node2D" parent="." unique_id=1638037491]
 script = ExtResource("3_h2yge")
 
+[node name="BlinkTimer" type="Timer" parent="." unique_id=377922945]
+wait_time = 0.52
+autostart = true
+
 [connection signal="destroyed" from="Ship" to="." method="_on_ship_destroyed"]
+[connection signal="timeout" from="BlinkTimer" to="." method="_on_blink_timer_timeout"]

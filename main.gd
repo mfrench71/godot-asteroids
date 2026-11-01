@@ -12,7 +12,7 @@ const ROCK_HIT_WAIT: int = 80 # the arcade's $50: a saucer comes once no rock ha
 const SAUCER_RETRY: int = 18 # the arcade's $12: when it isn't time for a saucer, look again after this many
 
 var score: int = 0 # points this game: rocks score from POINTS, saucers 200 or 1000
-var lives: int = START_LIVES # ships left, counting the one in play
+var lives: int = 0 # ships left, counting the one in play; none until a game starts
 var rocks_per_wave: int = 2 # like the arcade: starts at 2, and 2 are added before every wave
 var wave_ticks: int = 0 # counts down to the next wave; 0 when no wave is waiting
 # The saucer's timers, like the arcade's: they count once every 4 ticks (see _physics_process).
@@ -20,10 +20,13 @@ var saucer_time_reload: int = 146 # the wait after each saucer: 6 less each time
 var saucer_timer: int = 0 # counts down to the next chance of a saucer; set by start_wave
 var max_rocks_for_ufo: int = 5 # fewer rocks than this also brings a saucer: 1 more each wave, up to 10
 var rock_hit_timer: int = 0 # set to ROCK_HIT_WAIT by every rock hit, counts down to 0
+var playing: bool = false # true while a game is on; false in attract mode, when there's no ship
 
 func _ready() -> void:
 	start_wave()
 	update_display()
+	$Ship.visible = false # no ship until a game starts
+	$Ship.set_physics_process(false)
 
 # Waits WAVE_TICKS after the last rock and explosion have gone, then starts the next wave.
 func _physics_process(_delta: float) -> void:
@@ -34,7 +37,7 @@ func _physics_process(_delta: float) -> void:
 	elif get_tree().get_nodes_in_group("rocks").is_empty() and get_tree().get_nodes_in_group("explosions").is_empty():
 		wave_ticks = WAVE_TICKS # the last rock and explosion have gone: start the countdown
 	# Like the arcade, the saucer's timers count every 4th tick, while there's no saucer and the ship is in play.
-	if Engine.get_physics_frames() % 4 == 0 and $Ship.visible and no_saucer():
+	if Engine.get_physics_frames() % 4 == 0 and (not playing or $Ship.visible) and no_saucer():
 		count_to_saucer()
 
 # A new wave of large rocks: 2 more than last time, like the arcade, up to MAX_ROCKS.
@@ -121,6 +124,7 @@ func spawn_saucer() -> void:
 	saucer.small = pick_small() # before add_child, so the saucer's _ready sees it
 	saucer.ship = $Ship # so the saucer can check whether it hits the ship
 	saucer.accurate = score >= 35000 # from 35,000 points, the small saucer's aim gets better
+	saucer.playing = playing # in attract mode, it fires without waiting for the ship
 	add_child(saucer) # the saucer picks its own side and height in _ready
 	saucer.gone.connect(_on_saucer_gone)
 	saucer.destroyed.connect(_on_saucer_destroyed)
@@ -167,10 +171,16 @@ func _on_ship_destroyed() -> void:
 	lives -= 1
 	update_display()
 	if lives == 0:
-		$Display.game_over = true # GAME OVER, in the arcade's letters
+		$Display.message = "GAME OVER" # GAME OVER, in the arcade's letters
 		$Ship.set_physics_process(false) # stops the ship's script, so it never comes back
 
 # Shows the score and lives on screen.
 func update_display() -> void:
 	$Display.score = score # the setter redraws it
 	$Display.lives = lives
+
+# Runs every 0.52 s (the BlinkTimer's timeout, connected in the editor): in attract mode, PUSH START flashes, like the arcade.
+func _on_blink_timer_timeout() -> void:
+	if playing:
+		return
+	$Display.message = "" if $Display.message == "PUSH START" else "PUSH START"

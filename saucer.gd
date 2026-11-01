@@ -39,6 +39,7 @@ var speed: Vector2i = Vector2i.ZERO # playfield units per update, like a rock's
 var ship: Ship # set by Main, so this saucer can tell when it runs into the ship
 var shot_timer: int = 18 # like the arcade, the first shot comes 18 counts after the saucer does
 var accurate: bool = false # set by Main: from 35,000 points the small saucer misses by less
+var playing: bool = true # set by Main: false in attract mode, when the saucer fires without waiting for the ship
 
 func _ready() -> void:
 	add_to_group("saucers") # so Main can tell whether a saucer is on screen
@@ -96,8 +97,8 @@ func _physics_process(_delta: float) -> void:
 			rock.hit(false)
 			hit(false)
 			return
-	# Like the arcade, count to the next shot every 4th tick, but only while the ship is in play.
-	if Engine.get_physics_frames() % 4 == 0 and ship.visible:
+	# Like the arcade, count to the next shot every 4th tick, but only while the ship is in play or in attract mode.
+	if Engine.get_physics_frames() % 4 == 0 and (not playing or ship.visible):
 		shot_timer -= 1
 		if shot_timer == 0:
 			shot_timer = SHOT_WAIT

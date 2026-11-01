@@ -20,9 +20,14 @@ const GLYPHS: Dictionary = {
 	"A": [[Vector2(0, 0), Vector2(0, -8), Vector2(4, -12), Vector2(8, -8), Vector2(8, 0)], [Vector2(0, -4), Vector2(8, -4)]],
 	"E": [[Vector2(8, -12), Vector2(0, -12), Vector2(0, 0), Vector2(8, 0)], [Vector2(0, -6), Vector2(6, -6)]],
 	"G": [[Vector2(8, -8), Vector2(8, -12), Vector2(0, -12), Vector2(0, 0), Vector2(8, 0), Vector2(8, -4), Vector2(4, -4)]],
+	"H": [[Vector2(0, 0), Vector2(0, -12)], [Vector2(0, -6), Vector2(8, -6)], [Vector2(8, -12), Vector2(8, 0)]],
 	"M": [[Vector2(0, 0), Vector2(0, -12), Vector2(4, -8), Vector2(8, -12), Vector2(8, 0)]],
 	"O": [[Vector2(0, 0), Vector2(0, -12), Vector2(8, -12), Vector2(8, 0), Vector2(0, 0)]], # the same lines as "0", like the arcade
+	"P": [[Vector2(0, 0), Vector2(0, -12), Vector2(8, -12), Vector2(8, -6), Vector2(0, -6)]],
 	"R": [[Vector2(0, 0), Vector2(0, -12), Vector2(8, -12), Vector2(8, -6), Vector2(0, -6)], [Vector2(2, -6), Vector2(8, 0)]],
+	"S": [[Vector2(0, 0), Vector2(8, 0), Vector2(8, -6), Vector2(0, -6), Vector2(0, -12), Vector2(8, -12)]], # the same lines as "5"
+	"T": [[Vector2(4, 0), Vector2(4, -12)], [Vector2(0, -12), Vector2(8, -12)]],
+	"U": [[Vector2(0, -12), Vector2(0, 0), Vector2(8, 0), Vector2(8, -12)]],
 	"V": [[Vector2(0, -12), Vector2(4, 0), Vector2(8, -12)]],
 }
 
