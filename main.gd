@@ -167,7 +167,7 @@ func _on_ship_destroyed() -> void:
 	lives -= 1
 	update_display()
 	if lives == 0:
-		$GameOverLabel.visible = true # hidden in main.tscn until the last ship goes
+		$Display.game_over = true # GAME OVER, in the arcade's letters
 		$Ship.set_physics_process(false) # stops the ship's script, so it never comes back
 
 # Shows the score and lives on screen.

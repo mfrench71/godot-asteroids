@@ -11,15 +11,6 @@ script = ExtResource("1_ig7tw")
 position = Vector2(524, 372)
 rotation = -1.5707964
 
-[node name="GameOverLabel" type="Label" parent="." unique_id=797314032]
-visible = false
-offset_left = 380.0
-offset_top = 340.0
-offset_right = 656.0
-offset_bottom = 407.0
-theme_override_font_sizes/font_size = 48
-text = "GAME OVER"
-
 [node name="Display" type="Node2D" parent="." unique_id=1638037491]
 script = ExtResource("3_h2yge")
 

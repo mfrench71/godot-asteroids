@@ -16,6 +16,14 @@ const GLYPHS: Dictionary = {
 	"7": [[Vector2(0, -12), Vector2(8, -12), Vector2(8, 0)]],
 	"8": [[Vector2(0, 0), Vector2(8, 0), Vector2(8, -12), Vector2(0, -12), Vector2(0, 0)], [Vector2(0, -6), Vector2(8, -6)]],
 	"9": [[Vector2(8, 0), Vector2(8, -12), Vector2(0, -12), Vector2(0, -6), Vector2(8, -6)]],
+	# Letters, so far only the ones the game uses. The rest come when messages need them.
+	"A": [[Vector2(0, 0), Vector2(0, -8), Vector2(4, -12), Vector2(8, -8), Vector2(8, 0)], [Vector2(0, -4), Vector2(8, -4)]],
+	"E": [[Vector2(8, -12), Vector2(0, -12), Vector2(0, 0), Vector2(8, 0)], [Vector2(0, -6), Vector2(6, -6)]],
+	"G": [[Vector2(8, -8), Vector2(8, -12), Vector2(0, -12), Vector2(0, 0), Vector2(8, 0), Vector2(8, -4), Vector2(4, -4)]],
+	"M": [[Vector2(0, 0), Vector2(0, -12), Vector2(4, -8), Vector2(8, -12), Vector2(8, 0)]],
+	"O": [[Vector2(0, 0), Vector2(0, -12), Vector2(8, -12), Vector2(8, 0), Vector2(0, 0)]], # the same lines as "0", like the arcade
+	"R": [[Vector2(0, 0), Vector2(0, -12), Vector2(8, -12), Vector2(8, -6), Vector2(0, -6)], [Vector2(2, -6), Vector2(8, 0)]],
+	"V": [[Vector2(0, -12), Vector2(4, 0), Vector2(8, -12)]],
 }
 
 # Draws text with its first character's bottom-left corner at, size times the ROM's own size.
