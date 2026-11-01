@@ -38,6 +38,7 @@ const MAX_SHOTS: int = 2 # the arcade has 2 slots for the saucer's shots
 var speed: Vector2i = Vector2i.ZERO # playfield units per update, like a rock's
 var ship: Ship # set by Main, so this saucer can tell when it runs into the ship
 var shot_timer: int = 18 # like the arcade, the first shot comes 18 counts after the saucer does
+var accurate: bool = false # set by Main: from 35,000 points the small saucer misses by less
 
 func _ready() -> void:
 	add_to_group("saucers") # so Main can tell whether a saucer is on screen
@@ -102,15 +103,23 @@ func _physics_process(_delta: float) -> void:
 			shot_timer = SHOT_WAIT
 			fire(velocity)
 
-# Fires in a random direction, like the arcade's large saucer. If both shot slots are full, this shot is lost.
+# Like the arcade, the large saucer fires in a random direction, and the small saucer aims. If both shot slots are full, this shot is lost.
 func fire(base_velocity: Vector2) -> void:
 	if get_tree().get_nodes_in_group("saucer_shots").size() >= MAX_SHOTS:
 		return
-	var angle: float = randi_range(0, 255) * TAU / 256.0 # the arcade turns a full circle in 256 steps
+	var angle: float = aim() if small else randi_range(0, 255) * TAU / 256.0 # small aims, large fires anywhere
 	var bullet: Bullet = BULLET_SCENE.instantiate() as Bullet
 	bullet.from_saucer = true # before add_child, so its _ready joins the right group
 	bullet.launch(position, angle, base_velocity)
 	get_parent().add_child(bullet) # into Main, like the ship's shots
+
+# Like the arcade's small saucer: aims at the ship, allowing for its own speed, then misses on purpose
+# by up to 16 steps of the arcade's 256 to a full turn, or 8 from 35,000 points.
+func aim() -> float:
+	# The arcade's sum, in its own mixed units: the gap in pixels / 8, less half the saucer's units per update.
+	var target: Vector2 = (ship.position - position) / 8.0 - Vector2(speed) / 2.0
+	var miss: int = randi_range(-8, 7) if accurate else randi_range(-16, 15)
+	return target.angle() + miss * TAU / 256.0
 
 func _draw() -> void:
 	draw_polyline(PackedVector2Array(OUTLINE), Color.WHITE) # the outline, joined end to end

@@ -120,6 +120,7 @@ func spawn_saucer() -> void:
 	var saucer: Saucer = SAUCER_SCENE.instantiate() as Saucer
 	saucer.small = pick_small() # before add_child, so the saucer's _ready sees it
 	saucer.ship = $Ship # so the saucer can check whether it hits the ship
+	saucer.accurate = score >= 35000 # from 35,000 points, the small saucer's aim gets better
 	add_child(saucer) # the saucer picks its own side and height in _ready
 	saucer.gone.connect(_on_saucer_gone)
 	saucer.destroyed.connect(_on_saucer_destroyed)
