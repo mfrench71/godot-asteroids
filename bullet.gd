@@ -3,12 +3,24 @@ class_name Bullet
 extends Node2D
 
 const LIFETIME: int = 70 # the arcade's 18 steps, one every 4th update: 72 updates, 1.17 seconds
+const SPEED: float = 8.07 # the arcade's 63 playfield units per update
+const MAX_SPEED: float = 14.22 # the arcade's cap of 111 playfield units per update
+const AHEAD: float = 11.9 # starts 95 playfield units ahead of whoever fired it
 
-var velocity: Vector2 = Vector2.ZERO # pixels per tick, set by the ship when it fires
+var velocity: Vector2 = Vector2.ZERO # pixels per tick, set by launch()
 var ticks_left: int = LIFETIME # counts down to 0, then the shot is removed
 
 func _ready() -> void:
 	add_to_group("player_shots") # so the ship can count its shots
+
+# Sets up a new shot the way the arcade sets up every shot, the player's or the saucer's:
+# a little ahead of whoever fired it, at the shot speed plus their own speed, capped on x and y.
+func launch(from: Vector2, angle: float, base_velocity: Vector2) -> void:
+	var direction: Vector2 = Vector2.from_angle(angle)
+	position = from + direction * AHEAD
+	velocity = direction * SPEED + base_velocity
+	velocity.x = clampf(velocity.x, -MAX_SPEED, MAX_SPEED)
+	velocity.y = clampf(velocity.y, -MAX_SPEED, MAX_SPEED)
 
 func _physics_process(_delta: float) -> void:
 	ticks_left -= 1

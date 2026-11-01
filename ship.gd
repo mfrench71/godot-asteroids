@@ -11,10 +11,7 @@ const DRAG: float = 0.996 # the arcade's x 127/128 every 2nd update (speed kept 
 const MAX_SPEED: float = 8.07 # the arcade's max speed: capped at $3F playfield units per update
 const BULLET_SCENE: PackedScene = preload("res://bullet.tscn") # loaded with the script, so firing never waits for a file
 const SHIP_EXPLOSION_SCENE: PackedScene = preload("res://ship_explosion.tscn") # loaded with the script, so exploding never waits for a file
-const SHOT_SPEED: float = 8.07 # the arcade's 63 playfield units per update
-const SHOT_MAX_SPEED: float = 14.22 # the arcade's cap of 111 playfield units per update
 const MAX_SHOTS: int = 4 # the arcade has 4 slots for the player's shots
-const SHOT_START: float = 11.9 # 95 playfield units ahead of the ship's centre
 const EXTRA: float = 7.0 # the arcade adds 28 to a rock's size for the ship: 28 / 4 pixels
 const HIT_SIZE: float = 10.5 # as a target, the ship is the arcade's 42 units, like a small rock
 const START: Vector2 = Vector2(524, 372) # the arcade's start position, $1060 and $0C60 (Part 6)
@@ -106,11 +103,7 @@ func _physics_process(_delta: float) -> void:
 	# Fire once per press, if one of the 4 shot slots is free.
 	if Input.is_action_just_pressed("fire") and get_tree().get_nodes_in_group("player_shots").size() < MAX_SHOTS:
 		var bullet: Bullet = BULLET_SCENE.instantiate() as Bullet # a new copy of the shot scene
-		bullet.position = position + Vector2.from_angle(rotation) * SHOT_START # ahead of the ship, like the arcade
-		bullet.velocity = Vector2.from_angle(rotation) * SHOT_SPEED + velocity # plus the ship's speed, so shots fired forward go faster
-		# Capped on x and y separately, like the ship's speed.
-		bullet.velocity.x = clampf(bullet.velocity.x, -SHOT_MAX_SPEED, SHOT_MAX_SPEED)
-		bullet.velocity.y = clampf(bullet.velocity.y, -SHOT_MAX_SPEED, SHOT_MAX_SPEED)
+		bullet.launch(position, rotation, velocity) # from the ship, the way it faces, plus the ship's speed
 		get_parent().add_child(bullet) # into Main, so it flies on its own
 
 # True when no rock is in SAFE_AREA, so the ship can come back without landing on one.
