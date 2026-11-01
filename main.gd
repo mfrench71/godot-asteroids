@@ -172,5 +172,5 @@ func _on_ship_destroyed() -> void:
 
 # Shows the score and lives on screen.
 func update_display() -> void:
-	$ScoreLabel.text = str(score)
+	$Display.score = score # the setter redraws it
 	$LivesLabel.text = "Lives: " + str(lives)

@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" uid="uid://doxt4u1y575uk" path="res://main.gd" id="1_ig7tw"]
 [ext_resource type="PackedScene" uid="uid://bxxsw4acb4tna" path="res://ship.tscn" id="2_0xm2m"]
+[ext_resource type="Script" uid="uid://b8576dh20kqx2" path="res://display.gd" id="3_h2yge"]
 
 [node name="Main" type="Node2D" unique_id=1979476297]
 script = ExtResource("1_ig7tw")
@@ -9,14 +10,6 @@ script = ExtResource("1_ig7tw")
 [node name="Ship" parent="." unique_id=834139698 instance=ExtResource("2_0xm2m")]
 position = Vector2(524, 372)
 rotation = -1.5707964
-
-[node name="ScoreLabel" type="Label" parent="." unique_id=1244378018]
-offset_left = 80.0
-offset_top = 20.0
-offset_right = 120.0
-offset_bottom = 43.0
-theme_override_font_sizes/font_size = 32
-text = "0"
 
 [node name="LivesLabel" type="Label" parent="." unique_id=142839147]
 offset_left = 80.0
@@ -34,5 +27,8 @@ offset_right = 656.0
 offset_bottom = 407.0
 theme_override_font_sizes/font_size = 48
 text = "GAME OVER"
+
+[node name="Display" type="Node2D" parent="." unique_id=1638037491]
+script = ExtResource("3_h2yge")
 
 [connection signal="destroyed" from="Ship" to="." method="_on_ship_destroyed"]
