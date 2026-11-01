@@ -29,6 +29,7 @@ Each part of the series has a tag, so you can see the code exactly as it was at 
 | `part-15` | [Part 15: Hyperspace](https://circleseven.co.uk/learning-godot-by-rebuilding-asteroids-part-15-hyperspace/) |
 | `part-16` | [Part 16: The Saucer Arrives](https://circleseven.co.uk/learning-godot-by-rebuilding-asteroids-part-16-the-saucer-arrives/) |
 | `part-17` | [Part 17: Shooting the Saucer](https://circleseven.co.uk/learning-godot-by-rebuilding-asteroids-part-17-shooting-the-saucer/) |
+| `part-18` | [Part 18: The Saucer Shoots Back](https://circleseven.co.uk/learning-godot-by-rebuilding-asteroids-part-18-the-saucer-shoots-back/) |
 
 There's also an aside about the arcade machine itself: [Inside the Arcade Machine](https://circleseven.co.uk/learning-godot-by-rebuilding-asteroids-aside-inside-the-arcade-machine/).
 
