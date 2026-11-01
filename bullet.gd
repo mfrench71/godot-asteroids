@@ -1,4 +1,4 @@
-# One player shot: flies straight, wraps, hits a rock or saucer, and lasts about 1.17 seconds.
+# One shot: flies straight, wraps, hits a rock or saucer, and lasts about 1.17 seconds.
 class_name Bullet
 extends Node2D
 
@@ -9,9 +9,11 @@ const AHEAD: float = 11.9 # starts 95 playfield units ahead of whoever fired it
 
 var velocity: Vector2 = Vector2.ZERO # pixels per tick, set by launch()
 var ticks_left: int = LIFETIME # counts down to 0, then the shot is removed
+var from_saucer: bool = false # set before add_child: the saucer's shots never hit the saucer, and score nothing
 
 func _ready() -> void:
-	add_to_group("player_shots") # so the ship can count its shots
+	# Counted separately, like the arcade's 4 slots for the player's shots and 2 for the saucer's.
+	add_to_group("saucer_shots" if from_saucer else "player_shots")
 
 # Sets up a new shot the way the arcade sets up every shot, the player's or the saucer's:
 # a little ahead of whoever fired it, at the shot speed plus their own speed, capped on x and y.
@@ -32,16 +34,17 @@ func _physics_process(_delta: float) -> void:
 	var screen_size: Vector2 = get_viewport_rect().size
 	position.x = wrapf(position.x, 0.0, screen_size.x)
 	position.y = wrapf(position.y, 0.0, screen_size.y)
-	# Like the arcade, a shot checks the saucer before the rocks.
-	for saucer: Saucer in get_tree().get_nodes_in_group("saucers"):
-		if saucer.is_hit_by(position):
-			saucer.hit()
-			queue_free()
-			return
+	# Like the arcade, a player's shot checks the saucer before the rocks. The saucer's own shots never hit it.
+	if not from_saucer:
+		for saucer: Saucer in get_tree().get_nodes_in_group("saucers"):
+			if saucer.is_hit_by(position):
+				saucer.hit()
+				queue_free()
+				return
 	# Like the arcade, a shot can hit one rock, and both go.
 	for rock: Rock in get_tree().get_nodes_in_group("rocks"):
 		if rock.is_hit_by(position):
-			rock.hit()
+			rock.hit(not from_saucer) # only the player's shots score
 			queue_free()
 			return
 

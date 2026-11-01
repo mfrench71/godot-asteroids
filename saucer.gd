@@ -1,4 +1,4 @@
-# The flying saucer: large or small. Comes in from one side, wanders up and down, and leaves at the other, unless it's hit first.
+# The flying saucer: large or small. Comes in from one side, wanders up and down firing, and leaves at the other, unless it's hit first.
 class_name Saucer
 extends Node2D
 
@@ -29,11 +29,15 @@ const HIT_SIZE_SMALL: float = 10.5
 # How much bigger the saucer makes what it runs into: the arcade adds 37 or 19 units, / 4 for pixels.
 const EXTRA_LARGE: float = 9.25
 const EXTRA_SMALL: float = 4.75
+const BULLET_SCENE: PackedScene = preload("res://bullet.tscn") # like the ship's, loaded with the script
+const SHOT_WAIT: int = 10 # the arcade's $0A: a shot every 10 counts, each count 4 ticks
+const MAX_SHOTS: int = 2 # the arcade has 2 slots for the saucer's shots
 
 @export var small: bool = false # the arcade's two saucers: large (200 points) or small (1000)
 
 var speed: Vector2i = Vector2i.ZERO # playfield units per update, like a rock's
 var ship: Ship # set by Main, so this saucer can tell when it runs into the ship
+var shot_timer: int = 18 # like the arcade, the first shot comes 18 counts after the saucer does
 
 func _ready() -> void:
 	add_to_group("saucers") # so Main can tell whether a saucer is on screen
@@ -71,7 +75,8 @@ func _physics_process(_delta: float) -> void:
 	# Like the arcade, a new up-or-down on the game's clock, not counted from when this saucer came.
 	if Engine.get_physics_frames() % TURN_TICKS == 0:
 		speed.y = TURNS[randi_range(0, 3)]
-	position += Vector2(speed) / 8.0 * 61.5 / 60.0 # units per update to pixels per tick, like Main's to_pixels
+	var velocity: Vector2 = Vector2(speed) / 8.0 * 61.5 / 60.0 # units per update to pixels per tick, like Main's to_pixels
+	position += velocity
 	var screen_size: Vector2 = get_viewport_rect().size
 	position.y = wrapf(position.y, 0.0, screen_size.y) # off the top, back on the bottom, and the other way
 	if position.x < 0.0 or position.x > screen_size.x:
@@ -90,6 +95,22 @@ func _physics_process(_delta: float) -> void:
 			rock.hit(false)
 			hit(false)
 			return
+	# Like the arcade, count to the next shot every 4th tick, but only while the ship is in play.
+	if Engine.get_physics_frames() % 4 == 0 and ship.visible:
+		shot_timer -= 1
+		if shot_timer == 0:
+			shot_timer = SHOT_WAIT
+			fire(velocity)
+
+# Fires in a random direction, like the arcade's large saucer. If both shot slots are full, this shot is lost.
+func fire(base_velocity: Vector2) -> void:
+	if get_tree().get_nodes_in_group("saucer_shots").size() >= MAX_SHOTS:
+		return
+	var angle: float = randi_range(0, 255) * TAU / 256.0 # the arcade turns a full circle in 256 steps
+	var bullet: Bullet = BULLET_SCENE.instantiate() as Bullet
+	bullet.from_saucer = true # before add_child, so its _ready joins the right group
+	bullet.launch(position, angle, base_velocity)
+	get_parent().add_child(bullet) # into Main, like the ship's shots
 
 func _draw() -> void:
 	draw_polyline(PackedVector2Array(OUTLINE), Color.WHITE) # the outline, joined end to end
