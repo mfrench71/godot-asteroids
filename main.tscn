@@ -11,14 +11,6 @@ script = ExtResource("1_ig7tw")
 position = Vector2(524, 372)
 rotation = -1.5707964
 
-[node name="LivesLabel" type="Label" parent="." unique_id=142839147]
-offset_left = 80.0
-offset_top = 60.0
-offset_right = 120.0
-offset_bottom = 83.0
-theme_override_font_sizes/font_size = 32
-text = "Lives: 3"
-
 [node name="GameOverLabel" type="Label" parent="." unique_id=797314032]
 visible = false
 offset_left = 380.0
