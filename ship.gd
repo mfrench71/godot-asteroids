@@ -124,10 +124,7 @@ func start_is_clear() -> bool:
 func is_hit_by(point: Vector2, extra: float = 0.0) -> bool:
 	if not visible:
 		return false # in hyperspace, or gone and waiting to come back: nothing can hit it
-	var dx: float = absf(point.x - position.x)
-	var dy: float = absf(point.y - position.y)
-	var h: float = HIT_SIZE + extra
-	return dx <= h and dy <= h and dx + dy < h * 1.5
+	return HitTest.octagon(point, position, HIT_SIZE + extra)
 
 # The ship is destroyed: tells Main, hides the ship, starts the respawn wait and shows the explosion.
 func explode() -> void:

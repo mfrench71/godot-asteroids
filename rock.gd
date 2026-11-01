@@ -34,11 +34,7 @@ func _ready() -> void:
 func is_hit_by(point: Vector2, extra: float = 0.0) -> bool:
 	if is_queued_for_deletion():
 		return false # already hit this tick: it goes at the end of the tick, so nothing else can hit it
-	var dx: float = absf(point.x - position.x)
-	var dy: float = absf(point.y - position.y)
-	var h: float = HIT_SIZE[size] + extra
-	# Inside the box on both axes, and not in one of its cut-off corners.
-	return dx <= h and dy <= h and dx + dy < h * 1.5
+	return HitTest.octagon(point, position, HIT_SIZE[size] + extra)
 
 # Called by whatever hits this rock. scored is false when the saucer hit it: the arcade only scores for the player.
 func hit(scored: bool = true) -> void:
