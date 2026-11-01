@@ -13,6 +13,7 @@ const SHIP_ICON: Array = [Vector2(-4, 6), Vector2(4, 6), Vector2(8, 10), Vector2
 const MESSAGES: Dictionary = {
 	"PUSH START": Vector2(400, 114),
 	"GAME OVER": Vector2(400, 278),
+	"PLAYER 1": Vector2(400, 178),
 }
 
 var score: int = 0:
