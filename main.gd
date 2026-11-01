@@ -119,6 +119,7 @@ func spawn_saucer() -> void:
 		saucer_time_reload -= 6
 	var saucer: Saucer = SAUCER_SCENE.instantiate() as Saucer
 	saucer.small = pick_small() # before add_child, so the saucer's _ready sees it
+	saucer.ship = $Ship # so the saucer can check whether it hits the ship
 	add_child(saucer) # the saucer picks its own side and height in _ready
 	saucer.gone.connect(_on_saucer_gone)
 	saucer.destroyed.connect(_on_saucer_destroyed)

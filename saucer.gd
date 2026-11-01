@@ -33,6 +33,7 @@ const EXTRA_SMALL: float = 4.75
 @export var small: bool = false # the arcade's two saucers: large (200 points) or small (1000)
 
 var speed: Vector2i = Vector2i.ZERO # playfield units per update, like a rock's
+var ship: Ship # set by Main, so this saucer can tell when it runs into the ship
 
 func _ready() -> void:
 	add_to_group("saucers") # so Main can tell whether a saucer is on screen
@@ -80,9 +81,15 @@ func _physics_process(_delta: float) -> void:
 		gone.emit() # Main's handler runs now, before the next line
 		queue_free() # off the left or right edge: this saucer has gone
 		return # a saucer that has gone can't run into anything
+	var extra: float = EXTRA_SMALL if small else EXTRA_LARGE
+	# Like the arcade, the saucer checks the ship first. Ramming it scores, like shooting it.
+	if ship.is_hit_by(position, extra):
+		hit() # first, so its points (and any extra ship) count before the lost ship
+		ship.explode()
+		return
 	# Like the arcade, a saucer that runs into a rock explodes and the rock splits, but no one scores.
 	for rock: Rock in get_tree().get_nodes_in_group("rocks"):
-		if rock.is_hit_by(position, EXTRA_SMALL if small else EXTRA_LARGE):
+		if rock.is_hit_by(position, extra):
 			rock.hit(false)
 			hit(false)
 			return

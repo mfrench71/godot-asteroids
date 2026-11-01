@@ -1,7 +1,8 @@
 # The player's ship: turning, thrust, drag, screen wrap, the flame, firing, and being hit and coming back.
+class_name Ship
 extends Node2D
 
-signal destroyed # tells Main a rock hit the ship
+signal destroyed # tells Main the ship has been destroyed
 
 # THRUST, DRAG and MAX_SPEED are the arcade's values, converted to pixels and 60 ticks a second
 const TURN_SPEED: float = 4.33 # the arcade's turn speed: 3/256 of a turn per update, at 61.5 updates a second
@@ -14,7 +15,8 @@ const SHOT_SPEED: float = 8.07 # the arcade's 63 playfield units per update
 const SHOT_MAX_SPEED: float = 14.22 # the arcade's cap of 111 playfield units per update
 const MAX_SHOTS: int = 4 # the arcade has 4 slots for the player's shots
 const SHOT_START: float = 11.9 # 95 playfield units ahead of the ship's centre
-const SHIP_SIZE: float = 7.0 # the arcade adds 28 to a rock's size for the ship: 28 / 4 pixels
+const EXTRA: float = 7.0 # the arcade adds 28 to a rock's size for the ship: 28 / 4 pixels
+const HIT_SIZE: float = 10.5 # as a target, the ship is the arcade's 42 units, like a small rock
 const START: Vector2 = Vector2(524, 372) # the arcade's start position, $1060 and $0C60 (Part 6)
 const RESPAWN_TICKS: int = 313 # the arcade: a 192-update explosion, then 129 updates: 321 updates, 5.2 s. That's 321 / 61.5 x 60 = 313 ticks.
 const SAFE_AREA: Rect2 = Rect2(384, 256, 256, 256) # the arcade's check before the ship comes back: x 384 to 640, y 256 to 512
@@ -97,7 +99,7 @@ func _physics_process(_delta: float) -> void:
 	position.y = wrapf(position.y, 0.0, screen_size.y)
 	# Like the arcade, a rock that touches the ship destroys it, and the rock is hit too.
 	for rock: Rock in get_tree().get_nodes_in_group("rocks"):
-		if rock.is_hit_by(position, SHIP_SIZE):
+		if rock.is_hit_by(position, EXTRA):
 			rock.hit()
 			explode()
 			return
@@ -117,6 +119,15 @@ func start_is_clear() -> bool:
 		if SAFE_AREA.has_point(rock.position):
 			return false
 	return true
+
+# The arcade's octagon hit test, for the saucer running into the ship.
+func is_hit_by(point: Vector2, extra: float = 0.0) -> bool:
+	if not visible:
+		return false # in hyperspace, or gone and waiting to come back: nothing can hit it
+	var dx: float = absf(point.x - position.x)
+	var dy: float = absf(point.y - position.y)
+	var h: float = HIT_SIZE + extra
+	return dx <= h and dy <= h and dx + dy < h * 1.5
 
 # The ship is destroyed: tells Main, hides the ship, starts the respawn wait and shows the explosion.
 func explode() -> void:
