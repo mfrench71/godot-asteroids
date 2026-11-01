@@ -104,6 +104,7 @@ func _physics_process(_delta: float) -> void:
 	if Input.is_action_just_pressed("fire") and get_tree().get_nodes_in_group("player_shots").size() < MAX_SHOTS:
 		var bullet: Bullet = BULLET_SCENE.instantiate() as Bullet # a new copy of the shot scene
 		bullet.launch(position, rotation, velocity) # from the ship, the way it faces, plus the ship's speed
+		bullet.ship = self # so the shot can tell if it comes back round and hits this ship
 		get_parent().add_child(bullet) # into Main, so it flies on its own
 
 # True when no rock is in SAFE_AREA, so the ship can come back without landing on one.
@@ -113,7 +114,7 @@ func start_is_clear() -> bool:
 			return false
 	return true
 
-# The arcade's octagon hit test, for the saucer running into the ship.
+# The arcade's octagon hit test, for the saucer or a shot hitting the ship.
 func is_hit_by(point: Vector2, extra: float = 0.0) -> bool:
 	if not visible:
 		return false # in hyperspace, or gone and waiting to come back: nothing can hit it

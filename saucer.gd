@@ -111,6 +111,7 @@ func fire(base_velocity: Vector2) -> void:
 	var bullet: Bullet = BULLET_SCENE.instantiate() as Bullet
 	bullet.from_saucer = true # before add_child, so its _ready joins the right group
 	bullet.launch(position, angle, base_velocity)
+	bullet.ship = ship # the player's ship, which Main handed this saucer
 	get_parent().add_child(bullet) # into Main, like the ship's shots
 
 # Like the arcade's small saucer: aims at the ship, allowing for its own speed, then misses on purpose
