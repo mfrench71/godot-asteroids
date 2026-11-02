@@ -1,4 +1,4 @@
-# Main: the playfield. Starts each wave of rocks, shows the saucers, and keeps the score and lives.
+# Main: the playfield. Starts and ends each game, starts each wave of rocks, shows the saucers, and keeps the score and lives.
 extends Node2D
 
 const ROCK_SCENE: PackedScene = preload("res://rock.tscn") # loaded with the script, so making a rock never waits for a file
@@ -51,7 +51,7 @@ func _physics_process(_delta: float) -> void:
 			start_wave()
 	elif get_tree().get_nodes_in_group("rocks").is_empty() and get_tree().get_nodes_in_group("explosions").is_empty():
 		wave_ticks = WAVE_TICKS # the last rock and explosion have gone: start the countdown
-	# Like the arcade, the saucer's timers count every 4th tick, while there's no saucer and the ship is in play.
+	# Like the arcade, the saucer's timers count every 4th tick while there's no saucer, and the ship is in play or no game is on.
 	if Engine.get_physics_frames() % 4 == 0 and (not playing or $Ship.visible) and no_saucer():
 		count_to_saucer()
 
