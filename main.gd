@@ -11,6 +11,7 @@ const WAVE_TICKS: int = 124 # the arcade waits 127 updates after the last rock: 
 const ROCK_HIT_WAIT: int = 80 # the arcade's $50: a saucer comes once no rock has been hit for this long
 const SAUCER_RETRY: int = 18 # the arcade's $12: when it isn't time for a saucer, look again after this many
 const START_TICKS: int = 125 # the arcade shows PLAYER 1 for 128 updates before the ship comes: 128 / 61.5 x 60
+const GAME_OVER_TICKS: int = 189 # the arcade ends the game once the last explosion is over: 194 updates after the hit, 194 / 61.5 x 60
 
 var score: int = 0 # points this game: rocks score from POINTS, saucers 200 or 1000
 var lives: int = 0 # ships left, counting the one in play; none until a game starts
@@ -23,6 +24,7 @@ var max_rocks_for_ufo: int = 5 # fewer rocks than this also brings a saucer: 1 m
 var rock_hit_timer: int = 0 # set to ROCK_HIT_WAIT by every rock hit, counts down to 0
 var playing: bool = false # true while a game is on; false in attract mode, when there's no ship
 var start_ticks: int = 0 # counts down while PLAYER 1 shows; 0 the rest of the time
+var game_over_ticks: int = 0 # counts down while GAME OVER shows; 0 the rest of the time
 
 func _ready() -> void:
 	start_wave()
@@ -31,6 +33,7 @@ func _ready() -> void:
 	$Ship.set_physics_process(false)
 
 # Starts a game when start is pressed and counts PLAYER 1 down, then waits WAVE_TICKS after the last rock and explosion have gone before the next wave.
+# Handles the GAME OVER countdown.
 func _physics_process(_delta: float) -> void:
 	if not playing and Input.is_action_just_pressed("start"):
 		start_game()
@@ -38,6 +41,10 @@ func _physics_process(_delta: float) -> void:
 		start_ticks -= 1
 		if start_ticks == 0:
 			$Display.message = "" # PLAYER 1 goes as the ship comes in
+	if game_over_ticks > 0:
+		game_over_ticks -= 1
+		if game_over_ticks == 0:
+			end_game()
 	if wave_ticks > 0:
 		wave_ticks -= 1
 		if wave_ticks == 0:
@@ -67,6 +74,15 @@ func start_game() -> void:
 	start_ticks = START_TICKS
 	$Ship.respawn_ticks = START_TICKS # the ship comes in when PLAYER 1 goes, if the middle is clear
 	$Ship.set_physics_process(true)
+
+# Back to attract mode, like the arcade once the last explosion has gone: GAME OVER goes,
+# PUSH START flashes again, and the last score stays on screen.
+func end_game() -> void:
+	playing = false
+	$Display.message = "PUSH START"
+	# A saucer still flying fires without waiting for the ship from now on, as it would in attract mode.
+	for saucer: Saucer in get_tree().get_nodes_in_group("saucers"):
+		saucer.playing = false
 
 # A new wave of large rocks: 2 more than last time, like the arcade, up to MAX_ROCKS.
 func start_wave() -> void:
@@ -200,7 +216,8 @@ func _on_ship_destroyed() -> void:
 	update_display()
 	if lives == 0:
 		$Display.message = "GAME OVER" # GAME OVER, in the arcade's letters
-		$Ship.set_physics_process(false) # stops the ship's script, so it never comes back
+		$Ship.set_physics_process(false) # stops the ship's script until the next game
+		game_over_ticks = GAME_OVER_TICKS # back to attract mode when the explosion has gone
 
 # Shows the score and lives on screen.
 func update_display() -> void:
