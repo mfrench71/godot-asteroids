@@ -16,21 +16,34 @@ const GLYPHS: Dictionary = {
 	"7": [[Vector2(0, -12), Vector2(8, -12), Vector2(8, 0)]],
 	"8": [[Vector2(0, 0), Vector2(8, 0), Vector2(8, -12), Vector2(0, -12), Vector2(0, 0)], [Vector2(0, -6), Vector2(8, -6)]],
 	"9": [[Vector2(8, 0), Vector2(8, -12), Vector2(0, -12), Vector2(0, -6), Vector2(8, -6)]],
-	# Letters, so far only the ones the game uses. The rest come when messages need them.
+	# Letters A to Z, all from the vector ROM, and "_" for an initial not chosen yet.
 	"A": [[Vector2(0, 0), Vector2(0, -8), Vector2(4, -12), Vector2(8, -8), Vector2(8, 0)], [Vector2(0, -4), Vector2(8, -4)]],
+	"B": [[Vector2(0, 0), Vector2(0, -12), Vector2(6, -12), Vector2(8, -10), Vector2(8, -8), Vector2(6, -6), Vector2(0, -6)], [Vector2(6, -6), Vector2(8, -4), Vector2(8, -2), Vector2(6, 0), Vector2(0, 0)]],
+	"C": [[Vector2(8, -12), Vector2(0, -12), Vector2(0, 0), Vector2(8, 0)]],
+	"D": [[Vector2(0, 0), Vector2(0, -12), Vector2(4, -12), Vector2(8, -8), Vector2(8, -4), Vector2(4, 0), Vector2(0, 0)]],
 	"E": [[Vector2(8, -12), Vector2(0, -12), Vector2(0, 0), Vector2(8, 0)], [Vector2(0, -6), Vector2(6, -6)]],
+	"F": [[Vector2(8, -12), Vector2(0, -12), Vector2(0, 0)], [Vector2(0, -6), Vector2(6, -6)]],
 	"G": [[Vector2(8, -8), Vector2(8, -12), Vector2(0, -12), Vector2(0, 0), Vector2(8, 0), Vector2(8, -4), Vector2(4, -4)]],
 	"H": [[Vector2(0, 0), Vector2(0, -12)], [Vector2(0, -6), Vector2(8, -6)], [Vector2(8, -12), Vector2(8, 0)]],
+	"I": [[Vector2(0, 0), Vector2(8, 0)], [Vector2(4, 0), Vector2(4, -12)], [Vector2(0, -12), Vector2(8, -12)]],
+	"J": [[Vector2(0, -4), Vector2(4, 0), Vector2(8, 0), Vector2(8, -12)]],
+	"K": [[Vector2(0, 0), Vector2(0, -12)], [Vector2(6, -12), Vector2(0, -6), Vector2(6, 0)]],
 	"L": [[Vector2(0, -12), Vector2(0, 0), Vector2(8, 0)]],
 	"M": [[Vector2(0, 0), Vector2(0, -12), Vector2(4, -8), Vector2(8, -12), Vector2(8, 0)]],
+	"N": [[Vector2(0, 0), Vector2(0, -12), Vector2(8, 0), Vector2(8, -12)]],
 	"O": [[Vector2(0, 0), Vector2(0, -12), Vector2(8, -12), Vector2(8, 0), Vector2(0, 0)]], # the same lines as "0", like the arcade
 	"P": [[Vector2(0, 0), Vector2(0, -12), Vector2(8, -12), Vector2(8, -6), Vector2(0, -6)]],
+	"Q": [[Vector2(0, 0), Vector2(0, -12), Vector2(8, -12), Vector2(8, -4), Vector2(4, 0), Vector2(0, 0)], [Vector2(4, -4), Vector2(8, 0)]],
 	"R": [[Vector2(0, 0), Vector2(0, -12), Vector2(8, -12), Vector2(8, -6), Vector2(0, -6)], [Vector2(2, -6), Vector2(8, 0)]],
 	"S": [[Vector2(0, 0), Vector2(8, 0), Vector2(8, -6), Vector2(0, -6), Vector2(0, -12), Vector2(8, -12)]], # the same lines as "5"
 	"T": [[Vector2(4, 0), Vector2(4, -12)], [Vector2(0, -12), Vector2(8, -12)]],
 	"U": [[Vector2(0, -12), Vector2(0, 0), Vector2(8, 0), Vector2(8, -12)]],
 	"V": [[Vector2(0, -12), Vector2(4, 0), Vector2(8, -12)]],
+	"W": [[Vector2(0, -12), Vector2(0, 0), Vector2(4, -4), Vector2(8, 0), Vector2(8, -12)]],
+	"X": [[Vector2(0, 0), Vector2(8, -12)], [Vector2(0, -12), Vector2(8, 0)]],
 	"Y": [[Vector2(4, 0), Vector2(4, -8), Vector2(0, -12)], [Vector2(8, -12), Vector2(4, -8)]],
+	"Z": [[Vector2(0, -12), Vector2(8, -12), Vector2(0, 0), Vector2(8, 0)]],
+	"_": [[Vector2(0, 0), Vector2(8, 0)]], # from the arcade's code, not the vector ROM
 }
 
 # Draws text with its first character's bottom-left corner at, size times the ROM's own size.

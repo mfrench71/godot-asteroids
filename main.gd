@@ -12,6 +12,7 @@ const ROCK_HIT_WAIT: int = 80 # the arcade's $50: a saucer comes once no rock ha
 const SAUCER_RETRY: int = 18 # the arcade's $12: when it isn't time for a saucer, look again after this many
 const START_TICKS: int = 125 # the arcade shows PLAYER 1 for 128 updates before the ship comes: 128 / 61.5 x 60
 const GAME_OVER_TICKS: int = 189 # the arcade ends the game once the last explosion is over: 194 updates after the hit, 194 / 61.5 x 60
+const HIGH_SCORES: int = 10 # the arcade keeps the ten best scores
 
 var score: int = 0 # points this game: rocks score from POINTS, saucers 200 or 1000
 var lives: int = 0 # ships left, counting the one in play; none until a game starts
@@ -25,8 +26,13 @@ var rock_hit_timer: int = 0 # set to ROCK_HIT_WAIT by every rock hit, counts dow
 var playing: bool = false # true while a game is on; false in attract mode, when there's no ship
 var start_ticks: int = 0 # counts down while PLAYER 1 shows; 0 the rest of the time
 var game_over_ticks: int = 0 # counts down while GAME OVER shows; 0 the rest of the time
+var high_scores: Array[int] = [] # the ten best scores, best first; 0 is an empty place
+var high_initials: Array[String] = [] # the initials for each place in high_scores
 
 func _ready() -> void:
+	high_scores.resize(HIGH_SCORES) # ten places; a typed int array fills new places with 0
+	high_initials.resize(HIGH_SCORES)
+	high_initials.fill("   ") # three spaces: no initials yet, like the arcade
 	start_wave()
 	update_display()
 	$Ship.visible = false # no ship until a game starts
@@ -79,10 +85,24 @@ func start_game() -> void:
 # PUSH START flashes again, and the last score stays on screen.
 func end_game() -> void:
 	playing = false
+	check_high_score()
+	update_display()
 	$Display.message = "PUSH START"
 	# A saucer still flying fires without waiting for the ship from now on, as it would in attract mode.
 	for saucer: Saucer in get_tree().get_nodes_in_group("saucers"):
 		saucer.playing = false
+
+# Like the arcade at the end of a game: the score goes in above the first entry it beats, and the rest move down one.
+# It has to beat it, so a tie goes below and a score of 0 never goes in.
+func check_high_score() -> void:
+	for i in HIGH_SCORES:
+		if score > high_scores[i]:
+			high_scores.insert(i, score)
+			high_initials.insert(i, "A  ") # the arcade starts the initials at "A", then 2 blanks
+			# insert made 11: the last one drops off the end.
+			high_scores.resize(HIGH_SCORES)
+			high_initials.resize(HIGH_SCORES)
+			return # one place only
 
 # A new wave of large rocks: 2 more than last time, like the arcade, up to MAX_ROCKS.
 func start_wave() -> void:
@@ -223,6 +243,7 @@ func _on_ship_destroyed() -> void:
 func update_display() -> void:
 	$Display.score = score # the setter redraws it
 	$Display.lives = lives
+	$Display.top_score = high_scores[0] # the best, drawn at the top
 
 # Runs every 0.52 s (the BlinkTimer's timeout, connected in the editor): in attract mode, PUSH START flashes, like the arcade.
 func _on_blink_timer_timeout() -> void:

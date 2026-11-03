@@ -15,11 +15,19 @@ const MESSAGES: Dictionary = {
 	"GAME OVER": Vector2(400, 278),
 	"PLAYER 1": Vector2(400, 178),
 }
+# Where the arcade puts the best score: x 480, at the same height as the score, and at the ROM's own size.
+const TOP_SCORE_AT: Vector2 = Vector2(480, 30)
+const TOP_SCORE_SIZE: float = 1.0
 
 var score: int = 0:
 	set(value):
 		score = value
 		queue_redraw() # the score has changed, so draw it again
+
+var top_score: int = 0:
+	set(value):
+		top_score = value
+		queue_redraw() # a new best score, so draw it again
 
 var lives: int = 0:
 	set(value):
@@ -32,11 +40,8 @@ var message: String = "":
 		queue_redraw() # show the new message, or none
 
 func _draw() -> void:
-	# Like the arcade: the score is kept in tens, with a "0" drawn after it, so 0 shows as "00".
-	# lpad puts spaces in front to make 5 places, so the score's right-hand end never moves.
-	@warning_ignore("integer_division")
-	var text: String = (str(score / 10) + "0").lpad(5)
-	VectorFont.draw_text(self, text, SCORE_AT, TEXT_SIZE)
+	VectorFont.draw_text(self, score_text(score), SCORE_AT, TEXT_SIZE)
+	VectorFont.draw_text(self, score_text(top_score), TOP_SCORE_AT, TOP_SCORE_SIZE) # always shown, like the arcade
 	# One little ship for each life, counting the one in play, like the arcade.
 	for i in lives:
 		draw_set_transform(LIVES_AT + Vector2(i * LIVES_GAP, 0)) # draw this one from here
@@ -44,3 +49,9 @@ func _draw() -> void:
 	draw_set_transform(Vector2.ZERO) # back to normal, for anything drawn after
 	if message != "":
 		VectorFont.draw_text(self, message, MESSAGES[message], TEXT_SIZE)
+
+# A score as the arcade writes it: kept in tens, with a "0" drawn after, so 0 shows as "00".
+# lpad puts spaces in front to make 5 places, so the right-hand end never moves.
+func score_text(points: int) -> String:
+	@warning_ignore("integer_division")
+	return (str(points / 10) + "0").lpad(5)
