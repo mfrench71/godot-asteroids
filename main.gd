@@ -13,6 +13,9 @@ const SAUCER_RETRY: int = 18 # the arcade's $12: when it isn't time for a saucer
 const START_TICKS: int = 125 # the arcade shows PLAYER 1 for 128 updates before the ship comes: 128 / 61.5 x 60
 const GAME_OVER_TICKS: int = 189 # the arcade ends the game once the last explosion is over: 194 updates after the hit, 194 / 61.5 x 60
 const HIGH_SCORES: int = 10 # the arcade keeps the ten best scores
+const TABLE_SECONDS: float = 16.65 # the arcade swaps the table and the rocks every 1024 updates: 1024 / 61.5
+# Everything that flies about the playfield, by group: start_game empties them, and the table hides them.
+const PLAYFIELD_GROUPS: Array = ["rocks", "explosions", "saucers", "saucer_explosions", "player_shots", "saucer_shots"]
 
 var score: int = 0 # points this game: rocks score from POINTS, saucers 200 or 1000
 var lives: int = 0 # ships left, counting the one in play; none until a game starts
@@ -28,11 +31,14 @@ var start_ticks: int = 0 # counts down while PLAYER 1 shows; 0 the rest of the t
 var game_over_ticks: int = 0 # counts down while GAME OVER shows; 0 the rest of the time
 var high_scores: Array[int] = [] # the ten best scores, best first; 0 is an empty place
 var high_initials: Array[String] = [] # the initials for each place in high_scores
+var showing_table: bool = false # true while attract mode shows the high score table instead of the rocks
 
 func _ready() -> void:
 	high_scores.resize(HIGH_SCORES) # ten places; a typed int array fills new places with 0
 	high_initials.resize(HIGH_SCORES)
 	high_initials.fill("   ") # three spaces: no initials yet, like the arcade
+	$Display.high_scores = high_scores # the same arrays, not copies, so the Display sees every new score
+	$Display.high_initials = high_initials
 	start_wave()
 	update_display()
 	$Ship.visible = false # no ship until a game starts
@@ -57,16 +63,18 @@ func _physics_process(_delta: float) -> void:
 			start_wave()
 	elif get_tree().get_nodes_in_group("rocks").is_empty() and get_tree().get_nodes_in_group("explosions").is_empty():
 		wave_ticks = WAVE_TICKS # the last rock and explosion have gone: start the countdown
-	# Like the arcade, the saucer's timers count every 4th tick while there's no saucer, and the ship is in play or no game is on.
-	if Engine.get_physics_frames() % 4 == 0 and (not playing or $Ship.visible) and no_saucer():
+	# Like the arcade, the saucer's timers count every 4th tick while there's no saucer, the ship is in play or no game is on, and the table isn't showing.
+	if Engine.get_physics_frames() % 4 == 0 and (not playing or $Ship.visible) and no_saucer() and not showing_table:
 		count_to_saucer()
 
 # Starts a game from attract mode, like the arcade: the screen emptied, the score and ships reset,
 # then PLAYER 1 while the first wave and the ship wait.
 func start_game() -> void:
 	playing = true
+	$TableTimer.stop()
+	show_table(false) # the table goes, if it was up
 	# Everything left from attract mode goes. The arcade empties all its slots.
-	for group: String in ["rocks", "explosions", "saucers", "saucer_explosions", "player_shots", "saucer_shots"]:
+	for group: String in PLAYFIELD_GROUPS:
 		for node: Node in get_tree().get_nodes_in_group(group):
 			node.queue_free()
 	score = 0
@@ -91,6 +99,8 @@ func end_game() -> void:
 	# A saucer still flying fires without waiting for the ship from now on, as it would in attract mode.
 	for saucer: Saucer in get_tree().get_nodes_in_group("saucers"):
 		saucer.playing = false
+	# The arcade shows the rocks until its slow timer next ticks over, 1 to 256 updates away, then the table.
+	$TableTimer.start(randi_range(1, 256) / 61.5)
 
 # Like the arcade at the end of a game: the score goes in above the first entry it beats, and the rest move down one.
 # It has to beat it, so a tie goes below and a score of 0 never goes in.
@@ -103,6 +113,25 @@ func check_high_score() -> void:
 			high_scores.resize(HIGH_SCORES)
 			high_initials.resize(HIGH_SCORES)
 			return # one place only
+
+# Swaps between the table and the rocks, like the arcade's attract mode. The table only shows if a score has gone in.
+func _on_table_timer_timeout() -> void:
+	show_table(not showing_table and high_scores[0] > 0)
+	$TableTimer.start(TABLE_SECONDS)
+
+# Shows or hides the table. While it shows, the playfield is hidden and stopped, like the arcade,
+# which skips drawing and moving the rocks and saucers then.
+func show_table(shown: bool) -> void:
+	showing_table = shown
+	$Display.table_shown = shown
+	for group: String in PLAYFIELD_GROUPS:
+		for node: Node2D in get_tree().get_nodes_in_group(group):
+			freeze(node, shown)
+
+# Hides a node and stops its scripts, or shows it and lets it carry on from where it stopped.
+func freeze(node: Node2D, frozen: bool) -> void:
+	node.visible = not frozen
+	node.process_mode = Node.PROCESS_MODE_DISABLED if frozen else Node.PROCESS_MODE_INHERIT
 
 # A new wave of large rocks: 2 more than last time, like the arcade, up to MAX_ROCKS.
 func start_wave() -> void:
@@ -127,6 +156,7 @@ func spawn_rock() -> void:
 	rock.velocity = to_pixels(rock.speed)
 	add_child(rock) # a child of Main, like the shots
 	rock.destroyed.connect(_on_rock_destroyed) # runs each time this rock is hit
+	freeze(rock, showing_table) # a wave that comes while the table shows waits behind it, like the arcade
 
 # A hit rock explodes, scores unless a saucer hit it, then splits into two of the next size down, like the arcade. Small ones just go.
 func _on_rock_destroyed(rock: Rock, scored: bool) -> void:

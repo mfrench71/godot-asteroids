@@ -14,10 +14,14 @@ const MESSAGES: Dictionary = {
 	"PUSH START": Vector2(400, 114),
 	"GAME OVER": Vector2(400, 278),
 	"PLAYER 1": Vector2(400, 178),
+	"HIGH SCORES": Vector2(400, 178),
 }
 # Where the arcade puts the best score: x 480, at the same height as the score, and at the ROM's own size.
 const TOP_SCORE_AT: Vector2 = Vector2(480, 30)
 const TOP_SCORE_SIZE: float = 1.0
+# Where the arcade starts the table: x 380, 668 up its screen, and each row 32 lower.
+const TABLE_AT: Vector2 = Vector2(380, 238)
+const TABLE_GAP: float = 32.0
 
 var score: int = 0:
 	set(value):
@@ -39,6 +43,14 @@ var message: String = "":
 		message = value
 		queue_redraw() # show the new message, or none
 
+var high_scores: Array[int] = [] # Main's arrays, set in its _ready
+var high_initials: Array[String] = []
+
+var table_shown: bool = false:
+	set(value):
+		table_shown = value
+		queue_redraw() # the table comes or goes
+
 func _draw() -> void:
 	VectorFont.draw_text(self, score_text(score), SCORE_AT, TEXT_SIZE)
 	VectorFont.draw_text(self, score_text(top_score), TOP_SCORE_AT, TOP_SCORE_SIZE) # always shown, like the arcade
@@ -49,6 +61,14 @@ func _draw() -> void:
 	draw_set_transform(Vector2.ZERO) # back to normal, for anything drawn after
 	if message != "":
 		VectorFont.draw_text(self, message, MESSAGES[message], TEXT_SIZE)
+	if table_shown:
+		VectorFont.draw_text(self, "HIGH SCORES", MESSAGES["HIGH SCORES"], TEXT_SIZE)
+		# Each row like " 1 12340 ABC": the place, the score and the initials, like the arcade.
+		for i in high_scores.size():
+			if high_scores[i] == 0:
+				break # the arcade stops at the first empty place
+			var row: String = str(i + 1).lpad(2) + " " + score_text(high_scores[i]) + " " + high_initials[i]
+			VectorFont.draw_text(self, row, TABLE_AT + Vector2(0, i * TABLE_GAP), TEXT_SIZE)
 
 # A score as the arcade writes it: kept in tens, with a "0" drawn after, so 0 shows as "00".
 # lpad puts spaces in front to make 5 places, so the right-hand end never moves.
