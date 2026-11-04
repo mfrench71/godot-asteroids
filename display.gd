@@ -1,4 +1,4 @@
-# The arcade's display: the score and best score, drawn in its own digits, lives displayed as ships, its messages and the high score table, on top of the playfield.
+# The arcade's display: the score and best score, drawn in its own digits, lives displayed as ships, its messages and the high score table, and the initials entry screen, on top of the playfield.
 extends Node2D
 
 # Where the arcade puts the score: x 100, and 876 up its screen, which shows 10 units above the playfield.
@@ -22,6 +22,13 @@ const TOP_SCORE_SIZE: float = 1.0
 # Where the arcade starts the table: x 380, 668 up its screen, and each row 32 lower.
 const TABLE_AT: Vector2 = Vector2(380, 238)
 const TABLE_GAP: float = 32.0
+# The arcade's entry screen: its four lines from x 48, 680 up its screen and each 32 lower,
+# and the initials at x 400, 228 up, four times the ROM's size.
+const PROMPTS: Array = ["YOUR SCORE IS ONE OF THE TEN BEST", "PLEASE ENTER YOUR INITIALS", "PUSH ROTATE TO SELECT LETTER", "PUSH HYPERSPACE WHEN LETTER IS CORRECT"]
+const PROMPTS_AT: Vector2 = Vector2(48, 226)
+const PROMPTS_GAP: float = 32.0
+const INITIALS_AT: Vector2 = Vector2(400, 678)
+const INITIALS_SIZE: float = 4.0
 
 var score: int = 0:
 	set(value):
@@ -51,6 +58,11 @@ var table_shown: bool = false:
 		table_shown = value
 		queue_redraw() # the table comes or goes
 
+var initials: String = "": # the initials being entered; "" when there's no entry
+	set(value):
+		initials = value
+		queue_redraw() # a letter has changed
+
 func _draw() -> void:
 	VectorFont.draw_text(self, score_text(score), SCORE_AT, TEXT_SIZE)
 	VectorFont.draw_text(self, score_text(top_score), TOP_SCORE_AT, TOP_SCORE_SIZE) # always shown, like the arcade
@@ -69,6 +81,11 @@ func _draw() -> void:
 				break # the arcade stops at the first empty place
 			var row: String = str(i + 1).lpad(2) + " " + score_text(high_scores[i]) + " " + high_initials[i]
 			VectorFont.draw_text(self, row, TABLE_AT + Vector2(0, i * TABLE_GAP), TEXT_SIZE)
+	if initials != "":
+		for i in PROMPTS.size():
+			VectorFont.draw_text(self, PROMPTS[i], PROMPTS_AT + Vector2(0, i * PROMPTS_GAP), TEXT_SIZE)
+		# Like the arcade, an initial still a space is drawn as a line, so you can see where it goes.
+		VectorFont.draw_text(self, initials.replace(" ", "_"), INITIALS_AT, INITIALS_SIZE)
 
 # A score as the arcade writes it: kept in tens, with a "0" drawn after, so 0 shows as "00".
 # lpad puts spaces in front to make 5 places, so the right-hand end never moves.

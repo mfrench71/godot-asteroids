@@ -16,6 +16,11 @@ const HIGH_SCORES: int = 10 # the arcade keeps the ten best scores
 const TABLE_SECONDS: float = 16.65 # the arcade swaps the table and the rocks every 1024 updates: 1024 / 61.5
 # Everything that flies about the playfield, by group: start_game empties them, and the table hides them.
 const PLAYFIELD_GROUPS: Array = ["rocks", "explosions", "saucers", "saucer_explosions", "player_shots", "saucer_shots"]
+const LETTERS: String = " ABCDEFGHIJKLMNOPQRSTUVWXYZ" # the arcade's choices for an initial, in order: a space, then A to Z
+const LETTER_TICKS: int = 8 # rotate held down steps the letter every 8 updates, like the arcade
+const HYPERSPACE_HOLD: int = 3 # hyperspace accepts a letter once held for 3 updates, like the arcade
+const FIRST_LETTER_SECONDS: float = 66.6 # the arcade's time for the first initial: 4096 updates / 61.5
+const NEXT_LETTER_SECONDS: float = 50.0 # and for each one after: 3072 updates / 61.5
 
 var score: int = 0 # points this game: rocks score from POINTS, saucers 200 or 1000
 var lives: int = 0 # ships left, counting the one in play; none until a game starts
@@ -32,6 +37,10 @@ var game_over_ticks: int = 0 # counts down while GAME OVER shows; 0 the rest of 
 var high_scores: Array[int] = [] # the ten best scores, best first; 0 is an empty place
 var high_initials: Array[String] = [] # the initials for each place in high_scores
 var showing_table: bool = false # true while attract mode shows the high score table instead of the rocks
+var playfield_frozen: bool = false # true while the table or the initials hide the rocks and saucers
+var entering: int = -1 # the place in the table whose initials are being entered; -1 when none
+var letter: int = 0 # which of the three initials is being chosen: 0, 1 or 2
+var hyperspace_ticks: int = 0 # how long hyperspace has been held during entry
 
 func _ready() -> void:
 	high_scores.resize(HIGH_SCORES) # ten places; a typed int array fills new places with 0
@@ -53,6 +62,8 @@ func _physics_process(_delta: float) -> void:
 		start_ticks -= 1
 		if start_ticks == 0:
 			$Display.message = "" # PLAYER 1 goes as the ship comes in
+	if entering >= 0:
+		enter_initials()
 	if game_over_ticks > 0:
 		game_over_ticks -= 1
 		if game_over_ticks == 0:
@@ -63,14 +74,18 @@ func _physics_process(_delta: float) -> void:
 			start_wave()
 	elif get_tree().get_nodes_in_group("rocks").is_empty() and get_tree().get_nodes_in_group("explosions").is_empty():
 		wave_ticks = WAVE_TICKS # the last rock and explosion have gone: start the countdown
-	# Like the arcade, the saucer's timers count every 4th tick while there's no saucer, the ship is in play or no game is on, and the table isn't showing.
-	if Engine.get_physics_frames() % 4 == 0 and (not playing or $Ship.visible) and no_saucer() and not showing_table:
+	# Like the arcade, the saucer's timers count every 4th tick while there's no saucer, the ship is in play or no game is on, and the playfield isn't frozen.
+	if Engine.get_physics_frames() % 4 == 0 and (not playing or $Ship.visible) and no_saucer() and not playfield_frozen:
 		count_to_saucer()
 
 # Starts a game from attract mode, like the arcade: the screen emptied, the score and ships reset,
 # then PLAYER 1 while the first wave and the ship wait.
 func start_game() -> void:
 	playing = true
+	if entering >= 0: # START during entry ends it, with the initials as they stand, like the arcade
+		entering = -1
+		$EntryTimer.stop()
+		$Display.initials = ""
 	$TableTimer.stop()
 	show_table(false) # the table goes, if it was up
 	# Everything left from attract mode goes. The arcade empties all its slots.
@@ -90,21 +105,24 @@ func start_game() -> void:
 	$Ship.set_physics_process(true)
 
 # Back to attract mode, like the arcade once the last explosion has gone: GAME OVER goes, the score is checked for the table,
-# PUSH START flashes again, and the last score stays on screen.
+# and the last score stays on screen. A score that makes the table brings up the initials; otherwise PUSH START flashes again.
 func end_game() -> void:
 	playing = false
-	check_high_score()
+	var place: int = check_high_score()
 	update_display()
-	$Display.message = "PUSH START"
 	# A saucer still flying fires without waiting for the ship from now on, as it would in attract mode.
 	for saucer: Saucer in get_tree().get_nodes_in_group("saucers"):
 		saucer.playing = false
-	# The arcade shows the rocks until its slow timer next ticks over, 1 to 256 updates away, then the table.
-	$TableTimer.start(randi_range(1, 256) / 61.5)
+	if place >= 0:
+		start_entry(place)
+	else:
+		$Display.message = "PUSH START"
+		# The arcade shows the rocks until its slow timer next ticks over, 1 to 256 updates away, then the table.
+		$TableTimer.start(randi_range(1, 256) / 61.5)
 
 # Like the arcade at the end of a game: the score goes in above the first entry it beats, and the rest move down one.
-# It has to beat it, so a tie goes below and a score of 0 never goes in.
-func check_high_score() -> void:
+# It has to beat it, so a tie goes below and a score of 0 never goes in. Returns the place, or -1 if it didn't go in.
+func check_high_score() -> int:
 	for i in HIGH_SCORES:
 		if score > high_scores[i]:
 			high_scores.insert(i, score)
@@ -112,21 +130,76 @@ func check_high_score() -> void:
 			# insert made 11: the last one drops off the end.
 			high_scores.resize(HIGH_SCORES)
 			high_initials.resize(HIGH_SCORES)
-			return # one place only
+			return i # one place only
+	return -1
+
+# The arcade's entry screen: the playfield frozen, no PUSH START, and the first initial set to "A".
+func start_entry(place: int) -> void:
+	entering = place
+	letter = 0
+	hyperspace_ticks = 0
+	$Display.message = ""
+	$Display.initials = high_initials[entering]
+	freeze_playfield(true)
+	$EntryTimer.start(FIRST_LETTER_SECONDS)
+
+# Runs every tick during entry: rotate steps the letter, hyperspace accepts it.
+func enter_initials() -> void:
+	var initials: String = high_initials[entering] # a copy: written back below
+	if Engine.get_physics_frames() % LETTER_TICKS == 0:
+		var index: int = LETTERS.find(initials[letter])
+		if Input.is_action_pressed("rotate_left"):
+			index += 1
+		elif Input.is_action_pressed("rotate_right"):
+			index -= 1
+		initials[letter] = LETTERS[posmod(index, LETTERS.length())] # past Z comes the space, and before it, Z
+	# Like the arcade, a letter is only accepted once hyperspace has been held a moment, so a quick tap doesn't count.
+	if Input.is_action_pressed("hyperspace"):
+		hyperspace_ticks += 1
+	else:
+		hyperspace_ticks = 0
+	if hyperspace_ticks == HYPERSPACE_HOLD:
+		letter += 1
+		if letter == 3:
+			high_initials[entering] = initials
+			end_entry()
+			return
+		initials[letter] = "A" # each new initial starts at "A", like the arcade
+		$EntryTimer.start(NEXT_LETTER_SECONDS)
+	high_initials[entering] = initials
+	$Display.initials = initials
+
+# Entry is over: the arcade shows the table at once, with the new initials in it.
+func end_entry() -> void:
+	entering = -1
+	$EntryTimer.stop()
+	$Display.initials = ""
+	$Display.message = "PUSH START"
+	show_table(true)
+	$TableTimer.start(TABLE_SECONDS)
+
+# Runs when the EntryTimer runs out: entry ends with the initials as they are, like the arcade.
+func _on_entry_timer_timeout() -> void:
+	end_entry()
 
 # Swaps between the table and the rocks, like the arcade's attract mode. The table only shows if a score has gone in.
 func _on_table_timer_timeout() -> void:
 	show_table(not showing_table and high_scores[0] > 0)
 	$TableTimer.start(TABLE_SECONDS)
 
-# Shows or hides the table. While it shows, the playfield is hidden and stopped, like the arcade,
-# which skips drawing and moving the rocks and saucers then.
+# Shows or hides the table. While it shows, the playfield is frozen, like the arcade.
 func show_table(shown: bool) -> void:
 	showing_table = shown
 	$Display.table_shown = shown
+	freeze_playfield(shown)
+
+# Hides and stops everything on the playfield, or lets it all carry on, like the arcade,
+# which skips drawing and moving the rocks and saucers while the table or the initials show.
+func freeze_playfield(frozen: bool) -> void:
+	playfield_frozen = frozen
 	for group: String in PLAYFIELD_GROUPS:
 		for node: Node2D in get_tree().get_nodes_in_group(group):
-			freeze(node, shown)
+			freeze(node, frozen)
 
 # Hides a node and stops its scripts, or shows it and lets it carry on from where it stopped.
 func freeze(node: Node2D, frozen: bool) -> void:
@@ -156,7 +229,7 @@ func spawn_rock() -> void:
 	rock.velocity = to_pixels(rock.speed)
 	add_child(rock) # a child of Main, like the shots
 	rock.destroyed.connect(_on_rock_destroyed) # runs each time this rock is hit
-	freeze(rock, showing_table) # a wave that comes while the table shows waits behind it, like the arcade
+	freeze(rock, playfield_frozen) # a wave that comes while the playfield is frozen waits behind it, like the arcade
 
 # A hit rock explodes, scores unless a saucer hit it, then splits into two of the next size down, like the arcade. Small ones just go.
 func _on_rock_destroyed(rock: Rock, scored: bool) -> void:
@@ -275,8 +348,8 @@ func update_display() -> void:
 	$Display.lives = lives
 	$Display.top_score = high_scores[0] # the best, drawn at the top
 
-# Runs every 0.52 s (the BlinkTimer's timeout, connected in the editor): in attract mode, PUSH START flashes, like the arcade.
+# Runs every 0.52 s (the BlinkTimer's timeout, connected in the editor): in attract mode, and not during entry, PUSH START flashes.
 func _on_blink_timer_timeout() -> void:
-	if playing:
+	if playing or entering >= 0:
 		return
 	$Display.message = "" if $Display.message == "PUSH START" else "PUSH START"
