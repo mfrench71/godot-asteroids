@@ -14,7 +14,7 @@ const START_TICKS: int = 125 # the arcade shows PLAYER 1 for 128 updates before 
 const GAME_OVER_TICKS: int = 189 # the arcade ends the game once the last explosion is over: 194 updates after the hit, 194 / 61.5 x 60
 const HIGH_SCORES: int = 10 # the arcade keeps the ten best scores
 const TABLE_SECONDS: float = 16.65 # the arcade swaps the table and the rocks every 1024 updates: 1024 / 61.5
-# Everything that flies about the playfield, by group: start_game empties them, and the table hides them.
+# Everything that flies about the playfield, by group: start_game empties them, and the table and the initials freeze them.
 const PLAYFIELD_GROUPS: Array = ["rocks", "explosions", "saucers", "saucer_explosions", "player_shots", "saucer_shots"]
 const LETTERS: String = " ABCDEFGHIJKLMNOPQRSTUVWXYZ" # the arcade's choices for an initial, in order: a space, then A to Z
 const LETTER_TICKS: int = 8 # rotate held down steps the letter every 8 updates, like the arcade
