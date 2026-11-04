@@ -1,4 +1,4 @@
-# The arcade's display: the score, drawn in its own digits, lives displayed as ships, and its messages, on top of the playfield.
+# The arcade's display: the score and best score, drawn in its own digits, lives displayed as ships, its messages and the high score table, on top of the playfield.
 extends Node2D
 
 # Where the arcade puts the score: x 100, and 876 up its screen, which shows 10 units above the playfield.

@@ -1,4 +1,4 @@
-# Main: the playfield. Starts and ends each game, starts each wave of rocks, shows the saucers, and keeps the score and lives.
+# Main: the playfield. Starts and ends each game, starts each wave of rocks, shows the saucers, and keeps the score, lives and high scores.
 extends Node2D
 
 const ROCK_SCENE: PackedScene = preload("res://rock.tscn") # loaded with the script, so making a rock never waits for a file
@@ -89,7 +89,7 @@ func start_game() -> void:
 	$Ship.respawn_ticks = START_TICKS # the ship comes in when PLAYER 1 goes, if the middle is clear
 	$Ship.set_physics_process(true)
 
-# Back to attract mode, like the arcade once the last explosion has gone: GAME OVER goes,
+# Back to attract mode, like the arcade once the last explosion has gone: GAME OVER goes, the score is checked for the table,
 # PUSH START flashes again, and the last score stays on screen.
 func end_game() -> void:
 	playing = false
@@ -269,7 +269,7 @@ func _on_ship_destroyed() -> void:
 		$Ship.set_physics_process(false) # stops the ship's script until the next game
 		game_over_ticks = GAME_OVER_TICKS # back to attract mode when the explosion has gone
 
-# Shows the score and lives on screen.
+# Shows the score, lives and best score on screen.
 func update_display() -> void:
 	$Display.score = score # the setter redraws it
 	$Display.lives = lives
