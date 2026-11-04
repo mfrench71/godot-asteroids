@@ -1,4 +1,4 @@
-# Main: the playfield. Starts and ends each game, starts each wave of rocks, shows the saucers, and keeps the score, lives and high scores.
+# Main: the playfield. Starts and ends each game, starts each wave of rocks, shows the saucers, and keeps the score, lives and high scores, and saves the table.
 extends Node2D
 
 const ROCK_SCENE: PackedScene = preload("res://rock.tscn") # loaded with the script, so making a rock never waits for a file
@@ -21,6 +21,7 @@ const LETTER_TICKS: int = 8 # rotate held down steps the letter every 8 updates,
 const HYPERSPACE_HOLD: int = 3 # hyperspace accepts a letter once held for 3 updates, like the arcade
 const FIRST_LETTER_SECONDS: float = 66.6 # the arcade's time for the first initial: 4096 updates / 61.5
 const NEXT_LETTER_SECONDS: float = 50.0 # and for each one after: 3072 updates / 61.5
+const SAVE_PATH: String = "user://high_scores.cfg" # user:// is a folder Godot gives the game for its own files
 
 var score: int = 0 # points this game: rocks score from POINTS, saucers 200 or 1000
 var lives: int = 0 # ships left, counting the one in play; none until a game starts
@@ -46,12 +47,16 @@ func _ready() -> void:
 	high_scores.resize(HIGH_SCORES) # ten places; a typed int array fills new places with 0
 	high_initials.resize(HIGH_SCORES)
 	high_initials.fill("   ") # three spaces: no initials yet, like the arcade
+	load_high_scores()
 	$Display.high_scores = high_scores # the same arrays, not copies, so the Display sees every new score
 	$Display.high_initials = high_initials
 	start_wave()
 	update_display()
 	$Ship.visible = false # no ship until a game starts
 	$Ship.set_physics_process(false)
+	# Like the arcade, whose slow timer starts at 0 when it's switched on: the table's turn first, if there's a table.
+	show_table(high_scores[0] > 0)
+	$TableTimer.start(TABLE_SECONDS)
 
 # Starts a game when start is pressed and counts PLAYER 1 down, then waits WAVE_TICKS after the last rock and explosion have gone before the next wave.
 # Handles the GAME OVER countdown.
@@ -86,6 +91,7 @@ func start_game() -> void:
 		entering = -1
 		$EntryTimer.stop()
 		$Display.initials = ""
+		save_high_scores() # with the initials chosen so far
 	$TableTimer.stop()
 	show_table(false) # the table goes, if it was up
 	# Everything left from attract mode goes. The arcade empties all its slots.
@@ -114,6 +120,7 @@ func end_game() -> void:
 	for saucer: Saucer in get_tree().get_nodes_in_group("saucers"):
 		saucer.playing = false
 	if place >= 0:
+		save_high_scores() # the score is kept, even if the game is closed during entry
 		start_entry(place)
 	else:
 		$Display.message = "PUSH START"
@@ -132,6 +139,27 @@ func check_high_score() -> int:
 			high_initials.resize(HIGH_SCORES)
 			return i # one place only
 	return -1
+
+# Writes the table to SAVE_PATH, so it's still there next time. The arcade keeps it in RAM, and loses it at power off.
+func save_high_scores() -> void:
+	var config: ConfigFile = ConfigFile.new()
+	config.set_value("high_scores", "scores", high_scores)
+	config.set_value("high_scores", "initials", high_initials)
+	var error: Error = config.save(SAVE_PATH)
+	if error != OK:
+		push_warning("Couldn't save the high scores: " + error_string(error))
+
+# Reads the table back from SAVE_PATH, if there is one. The first time the game runs there isn't, so the table stays empty.
+func load_high_scores() -> void:
+	var config: ConfigFile = ConfigFile.new()
+	if config.load(SAVE_PATH) != OK:
+		return # no file yet: the table starts empty, like the arcade's at power on
+	# assign copies the values into the arrays the Display already shares, rather than making new ones.
+	high_scores.assign(config.get_value("high_scores", "scores", high_scores))
+	high_initials.assign(config.get_value("high_scores", "initials", high_initials))
+	# In case the file was changed by hand: the table is always ten long.
+	high_scores.resize(HIGH_SCORES)
+	high_initials.resize(HIGH_SCORES)
 
 # The arcade's entry screen: the playfield frozen, no PUSH START, and the first initial set to "A".
 func start_entry(place: int) -> void:
@@ -172,6 +200,7 @@ func enter_initials() -> void:
 # Entry is over: the arcade shows the table at once, with the new initials in it.
 func end_entry() -> void:
 	entering = -1
+	save_high_scores() # with the new initials
 	$EntryTimer.stop()
 	$Display.initials = ""
 	$Display.message = "PUSH START"
