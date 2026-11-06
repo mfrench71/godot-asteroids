@@ -34,6 +34,7 @@ Each part of the series has a tag, so you can see the code exactly as it was at 
 | `part-20` | [Part 20: Attract Mode and Game Over](https://circleseven.co.uk/learning-godot-by-rebuilding-asteroids-part-20-attract-mode-and-game-over/) |
 | `part-21` | [Part 21: The High Score Table](https://circleseven.co.uk/learning-godot-by-rebuilding-asteroids-part-21-the-high-score-table/) |
 | `part-22` | [Part 22: Entering Your Initials](https://circleseven.co.uk/learning-godot-by-rebuilding-asteroids-part-22-entering-your-initials/) |
+| `part-23` | [Part 23: Saving the High Scores](https://circleseven.co.uk/learning-godot-by-rebuilding-asteroids-part-23-saving-the-high-scores/) |
 
 There's also an aside about the arcade machine itself: [Inside the Arcade Machine](https://circleseven.co.uk/learning-godot-by-rebuilding-asteroids-aside-inside-the-arcade-machine/).
 
