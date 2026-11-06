@@ -35,6 +35,7 @@ Each part of the series has a tag, so you can see the code exactly as it was at 
 | `part-21` | [Part 21: The High Score Table](https://circleseven.co.uk/learning-godot-by-rebuilding-asteroids-part-21-the-high-score-table/) |
 | `part-22` | [Part 22: Entering Your Initials](https://circleseven.co.uk/learning-godot-by-rebuilding-asteroids-part-22-entering-your-initials/) |
 | `part-23` | [Part 23: Saving the High Scores](https://circleseven.co.uk/learning-godot-by-rebuilding-asteroids-part-23-saving-the-high-scores/) |
+| `part-24` | [Part 24: The Short Sounds](https://circleseven.co.uk/learning-godot-by-rebuilding-asteroids-part-24-the-short-sounds/) |
 
 There's also an aside about the arcade machine itself: [Inside the Arcade Machine](https://circleseven.co.uk/learning-godot-by-rebuilding-asteroids-aside-inside-the-arcade-machine/).
 
