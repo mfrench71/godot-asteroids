@@ -4,6 +4,7 @@ extends Node2D
 
 signal gone # tells Main this saucer went off the side
 signal destroyed(saucer: Saucer, scored: bool) # tells Main this saucer was hit, and whether that scores
+signal fired # tells Main a shot went out, for the sound
 
 # The arcade's saucer outline, from the vector ROM, with y flipped for Godot.
 # 80 across at the ROM's own size; the arcade draws it at half (large) or a quarter (small).
@@ -114,6 +115,7 @@ func fire(base_velocity: Vector2) -> void:
 	bullet.launch(position, angle, base_velocity)
 	bullet.ship = ship # the player's ship, which Main handed this saucer
 	get_parent().add_child(bullet) # into Main, like the ship's shots
+	fired.emit()
 
 # Like the arcade's small saucer: aims at the ship, allowing for its own speed, then misses on purpose
 # by up to 16 steps of the arcade's 256 to a full turn, or 8 from 35,000 points.

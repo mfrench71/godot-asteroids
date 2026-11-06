@@ -106,6 +106,7 @@ func _physics_process(_delta: float) -> void:
 		bullet.launch(position, rotation, velocity) # from the ship, the way it faces, plus the ship's speed
 		bullet.ship = self # so the shot can tell if it comes back round and hits this ship
 		get_parent().add_child(bullet) # into Main, so it flies on its own
+		$FireSound.play() # like the arcade's fire circuit: a new shot starts the sound again
 
 # True when no rock is in SAFE_AREA, so the ship can come back without landing on one.
 func start_is_clear() -> bool:

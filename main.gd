@@ -22,6 +22,12 @@ const HYPERSPACE_HOLD: int = 3 # hyperspace accepts a letter once held for 3 upd
 const FIRST_LETTER_SECONDS: float = 66.6 # the arcade's time for the first initial: 4096 updates / 61.5
 const NEXT_LETTER_SECONDS: float = 50.0 # and for each one after: 3072 updates / 61.5
 const SAVE_PATH: String = "user://high_scores.cfg" # user:// is a folder Godot gives the game for its own files
+# One explosion sound per rock size, indexed by Rock.size: small, medium, large, like the arcade's three pitches.
+const EXPLOSION_SOUNDS: Array[AudioStream] = [
+	preload("res://sounds/explosion_small.wav"),
+	preload("res://sounds/explosion_medium.wav"),
+	preload("res://sounds/explosion_large.wav"),
+]
 
 var score: int = 0 # points this game: rocks score from POINTS, saucers 200 or 1000
 var lives: int = 0 # ships left, counting the one in play; none until a game starts
@@ -44,6 +50,7 @@ var letter: int = 0 # which of the three initials is being chosen: 0, 1 or 2
 var hyperspace_ticks: int = 0 # how long hyperspace has been held during entry
 
 func _ready() -> void:
+	AudioServer.set_bus_mute(0, true) # silent until a game starts, like the arcade
 	high_scores.resize(HIGH_SCORES) # ten places; a typed int array fills new places with 0
 	high_initials.resize(HIGH_SCORES)
 	high_initials.fill("   ") # three spaces: no initials yet, like the arcade
@@ -86,6 +93,9 @@ func _physics_process(_delta: float) -> void:
 # Starts a game from attract mode, like the arcade: the screen emptied, the score and ships reset,
 # then PLAYER 1 while the first wave and the ship wait.
 func start_game() -> void:
+	$ExplosionSound.stop() # anything started silently in attract mode stops, so START begins in silence like the arcade
+	$SaucerFireSound.stop()
+	AudioServer.set_bus_mute(0, false)
 	playing = true
 	if entering >= 0: # START during entry ends it, with the initials as they stand, like the arcade
 		entering = -1
@@ -113,6 +123,7 @@ func start_game() -> void:
 # Back to attract mode, like the arcade once the last explosion has gone: GAME OVER goes, the score is checked for the table,
 # and the last score stays on screen. A score that makes the table brings up the initials; otherwise PUSH START flashes again.
 func end_game() -> void:
+	AudioServer.set_bus_mute(0, true) # the arcade turns every sound off when a game ends
 	playing = false
 	var place: int = check_high_score()
 	update_display()
@@ -262,6 +273,7 @@ func spawn_rock() -> void:
 
 # A hit rock explodes, scores unless a saucer hit it, then splits into two of the next size down, like the arcade. Small ones just go.
 func _on_rock_destroyed(rock: Rock, scored: bool) -> void:
+	play_explosion(rock.size)
 	rock_hit_timer = ROCK_HIT_WAIT # a rock was hit, even by the saucer: put off the saucer
 	spawn_explosion(rock.position) # where the rock was
 	if scored:
@@ -285,6 +297,11 @@ func spawn_explosion(at: Vector2) -> Explosion:
 	add_child(explosion) # a child of Main, like the rocks
 	return explosion
 
+# Plays the explosion for a size. The arcade has one explosion circuit, so a new one cuts off the last.
+func play_explosion(size: int) -> void:
+	$ExplosionSound.stream = EXPLOSION_SOUNDS[size]
+	$ExplosionSound.play()
+
 # Adds points, with an extra ship each time the score passes another 10,000, like the arcade.
 func add_score(points: int) -> void:
 	var before: int = score
@@ -293,6 +310,7 @@ func add_score(points: int) -> void:
 	@warning_ignore("integer_division")
 	if score / 10000 > before / 10000:
 		lives += 1
+		$ExtraLifeSound.play()
 	update_display()
 
 # Counts down to the next chance of a saucer, and sends one if the arcade's rules say so.
@@ -324,6 +342,7 @@ func spawn_saucer() -> void:
 	add_child(saucer) # the saucer picks its own side and height in _ready
 	saucer.gone.connect(_on_saucer_gone)
 	saucer.destroyed.connect(_on_saucer_destroyed)
+	saucer.fired.connect($SaucerFireSound.play) # the player's own play function, so no new function is needed
 
 # Like the arcade: the first saucers are large, then a random roll that favours small ones more and more,
 # and from 30,000 points every saucer is small.
@@ -340,6 +359,7 @@ func _on_saucer_gone() -> void:
 
 # Runs when a shot or rock hits a saucer: it explodes and scores unless it ran into a rock.
 func _on_saucer_destroyed(saucer: Saucer, scored: bool) -> void:
+	play_explosion(0 if saucer.small else 1)
 	var explosion: Explosion = spawn_explosion(saucer.position)
 	# Like the arcade, the explosion takes the saucer's place: no new saucer while it lasts,
 	# and the next wave doesn't wait for it, because that only waits for rocks.
@@ -364,6 +384,7 @@ func to_pixels(speed: Vector2i) -> Vector2:
 
 # Runs when the Ship's destroyed signal fires (connected in the editor, saved in main.tscn).
 func _on_ship_destroyed() -> void:
+	play_explosion(1)
 	lives -= 1
 	update_display()
 	if lives == 0:
