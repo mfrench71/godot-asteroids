@@ -4,3 +4,5 @@
 
 [node name="Saucer" type="Node2D" unique_id=1435371091]
 script = ExtResource("1_qmdbt")
+
+[node name="SirenSound" type="AudioStreamPlayer" parent="." unique_id=514618266]

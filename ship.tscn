@@ -2,9 +2,13 @@
 
 [ext_resource type="Script" uid="uid://bcqp1ojcfpvpu" path="res://ship.gd" id="1_l3rv8"]
 [ext_resource type="AudioStream" uid="uid://btts6upp7b6t8" path="res://sounds/fire.wav" id="2_4cq66"]
+[ext_resource type="AudioStream" uid="uid://d3r7hni6dhdi1" path="res://sounds/thrust.wav" id="3_v4325"]
 
 [node name="Ship" type="Node2D" unique_id=834139698]
 script = ExtResource("1_l3rv8")
 
 [node name="FireSound" type="AudioStreamPlayer" parent="." unique_id=925661846]
 stream = ExtResource("2_4cq66")
+
+[node name="ThrustSound" type="AudioStreamPlayer" parent="." unique_id=1606938744]
+stream = ExtResource("3_v4325")

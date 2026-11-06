@@ -33,6 +33,8 @@ const EXTRA_SMALL: float = 4.75
 const BULLET_SCENE: PackedScene = preload("res://bullet.tscn") # like the ship's, loaded with the script
 const SHOT_WAIT: int = 10 # the arcade's $0A: a shot every 10 counts, each count 4 ticks
 const MAX_SHOTS: int = 2 # the arcade has 2 slots for the saucer's shots
+const LARGE_SIREN: AudioStream = preload("res://sounds/saucer_large.wav") # the arcade's two saucer tones, picked by size
+const SMALL_SIREN: AudioStream = preload("res://sounds/saucer_small.wav")
 
 @export var small: bool = false # the arcade's two saucers: large (200 points) or small (1000)
 
@@ -59,6 +61,8 @@ func _ready() -> void:
 	if row >= 24:
 		row &= 23
 	position.y = screen_size.y - row * 32.0
+	$SirenSound.stream = SMALL_SIREN if small else LARGE_SIREN
+	$SirenSound.play() # loops until the saucer is freed, which takes the player with it
 
 # The arcade's hit test, the same octagon as a rock's.
 # extra widens it for something bigger than a dot, like the ship.
