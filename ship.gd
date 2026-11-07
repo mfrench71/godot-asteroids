@@ -3,6 +3,7 @@ class_name Ship
 extends Node2D
 
 signal destroyed # tells Main the ship has been destroyed
+signal fired # tells Main a shot went out, for the sound
 
 # THRUST, DRAG and MAX_SPEED are the arcade's values, converted to pixels and 60 ticks a second
 const TURN_SPEED: float = 4.33 # the arcade's turn speed: 3/256 of a turn per update, at 61.5 updates a second
@@ -107,7 +108,7 @@ func _physics_process(_delta: float) -> void:
 		bullet.launch(position, rotation, velocity) # from the ship, the way it faces, plus the ship's speed
 		bullet.ship = self # so the shot can tell if it comes back round and hits this ship
 		get_parent().add_child(bullet) # into Main, so it flies on its own
-		$FireSound.play() # like the arcade's fire circuit: a new shot starts the sound again
+		fired.emit()
 
 # True when no rock is in SAFE_AREA, so the ship can come back without landing on one.
 func start_is_clear() -> bool:

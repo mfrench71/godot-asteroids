@@ -3,7 +3,6 @@
 [ext_resource type="Script" uid="uid://doxt4u1y575uk" path="res://main.gd" id="1_ig7tw"]
 [ext_resource type="PackedScene" uid="uid://bxxsw4acb4tna" path="res://ship.tscn" id="2_0xm2m"]
 [ext_resource type="Script" uid="uid://b8576dh20kqx2" path="res://display.gd" id="3_h2yge"]
-[ext_resource type="AudioStream" uid="uid://bsolitlyvoruw" path="res://sounds/saucer_fire.wav" id="4_1bvp3"]
 [ext_resource type="AudioStream" uid="uid://b4rnyrpvb3i3t" path="res://sounds/thump.wav" id="6_7mycd"]
 [ext_resource type="Script" uid="uid://cr85g0hj0vfky" path="res://sound_board.gd" id="7_272bh"]
 
@@ -30,9 +29,6 @@ one_shot = true
 
 [node name="EntryTimer" type="Timer" parent="." unique_id=1694239725]
 one_shot = true
-
-[node name="SaucerFireSound" type="AudioStreamPlayer" parent="." unique_id=590620076]
-stream = ExtResource("4_1bvp3")
 
 [node name="ExplosionSound" type="AudioStreamPlayer" parent="." unique_id=482082732]
 

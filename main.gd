@@ -33,6 +33,9 @@ const THUMP_MIN_GAP: int = 8 # the shortest gap the arcade allows
 const THUMP_TICKS: int = 4 # each beat is on for 4 updates
 const THUMP_LOW_PITCH: float = 0.8 # the second of the two notes, played slower and so lower
 const LIFE_TICKS: int = 88 # the arcade's $B0 (176), counted down twice an update: about 1.4 seconds of beeping
+const SHIP_FIRE: int = 0 # which fire circuit, as the arcade's X register picks them
+const SAUCER_FIRE: int = 1
+const FIRE_TICKS: int = 16 # the arcade's $10: updates a fire sound stays on
 
 var score: int = 0 # points this game: rocks score from POINTS, saucers 200 or 1000
 var lives: int = 0 # ships left, counting the one in play; none until a game starts
@@ -57,6 +60,7 @@ var thump_gap: int = THUMP_START_GAP # shrinks by 1 every 64 ticks, back to THUM
 var thump_ticks: int = 0 # counts down to the next beat
 var thump_low: bool = false # which of the two notes comes next
 var life_ticks: int = 0 # counts down while the extra ship beeps
+var fire_timers: Array[int] = [0, 0] # the arcade's fire timers: updates left, or -1 when a new shot wants its sound
 
 func _ready() -> void:
 	AudioServer.set_bus_mute(0, true) # silent until a game starts, like the arcade
@@ -73,12 +77,15 @@ func _ready() -> void:
 	# Like the arcade, whose slow timer starts at 0 when it's switched on: the table's turn first, if there's a table.
 	show_table(high_scores[0] > 0)
 	$TableTimer.start(TABLE_SECONDS)
+	$Ship.fired.connect(start_fire_sound.bind(SHIP_FIRE)) # bind adds the circuit number when the signal calls it
 
 # Starts a game when start is pressed and counts PLAYER 1 down, then waits WAVE_TICKS after the last rock and explosion have gone before the next wave.
 # Handles the GAME OVER countdown.
 func _physics_process(_delta: float) -> void:
 	if playing:
 		heartbeat()
+		update_fire_sound(SHIP_FIRE)
+		update_fire_sound(SAUCER_FIRE)
 	update_life_sound()
 	if not playing and Input.is_action_just_pressed("start"):
 		start_game()
@@ -106,7 +113,7 @@ func _physics_process(_delta: float) -> void:
 # then PLAYER 1 while the first wave and the ship wait.
 func start_game() -> void:
 	$ExplosionSound.stop() # anything started silently in attract mode stops, so START begins in silence like the arcade
-	$SaucerFireSound.stop()
+	fire_timers.fill(0) # a saucer shot asked for its sound in attract mode, where the routine never runs, so clear it
 	AudioServer.set_bus_mute(0, false)
 	playing = true
 	if entering >= 0: # START during entry ends it, with the initials as they stand, like the arcade
@@ -286,6 +293,24 @@ func heartbeat() -> void:
 		$ThumpSound.play()
 		thump_ticks = THUMP_TICKS + thump_gap
 
+# A shot asks for its sound, like the arcade storing $80 in the circuit's timer.
+func start_fire_sound(which: int) -> void:
+	fire_timers[which] = -1
+
+# The arcade's routine at $75CD, every update for each fire circuit. A new shot while the sound is on
+# switches it off for one update, so the circuit starts its sweep again on the next.
+func update_fire_sound(which: int) -> void:
+	var on: bool = $SoundBoard.fire[which]
+	if not on and fire_timers[which] < 0:
+		fire_timers[which] = FIRE_TICKS
+		on = true
+	elif on and fire_timers[which] > 0:
+		fire_timers[which] -= 1
+		on = fire_timers[which] > 0
+	else:
+		on = false
+	$SoundBoard.fire[which] = on
+
 func spawn_rock() -> void:
 	var rock: Rock = ROCK_SCENE.instantiate() as Rock
 	rock.shape = randi_range(0, 3) # every new rock is large, with a random shape
@@ -378,7 +403,7 @@ func spawn_saucer() -> void:
 	add_child(saucer) # the saucer picks its own side and height in _ready
 	saucer.gone.connect(_on_saucer_gone)
 	saucer.destroyed.connect(_on_saucer_destroyed)
-	saucer.fired.connect($SaucerFireSound.play) # the player's own play function, so no new function is needed
+	saucer.fired.connect(start_fire_sound.bind(SAUCER_FIRE))
 
 # Like the arcade: the first saucers are large, then a random roll that favours small ones more and more,
 # and from 30,000 points every saucer is small.
