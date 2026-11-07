@@ -32,6 +32,7 @@ const THUMP_START_GAP: int = 48 # the arcade's $30: updates between beats at the
 const THUMP_MIN_GAP: int = 8 # the shortest gap the arcade allows
 const THUMP_TICKS: int = 4 # each beat is on for 4 updates
 const THUMP_LOW_PITCH: float = 0.8 # the second of the two notes, played slower and so lower
+const LIFE_TICKS: int = 88 # the arcade's $B0 (176), counted down twice an update: about 1.4 seconds of beeping
 
 var score: int = 0 # points this game: rocks score from POINTS, saucers 200 or 1000
 var lives: int = 0 # ships left, counting the one in play; none until a game starts
@@ -55,6 +56,7 @@ var hyperspace_ticks: int = 0 # how long hyperspace has been held during entry
 var thump_gap: int = THUMP_START_GAP # shrinks by 1 every 64 ticks, back to THUMP_START_GAP each wave
 var thump_ticks: int = 0 # counts down to the next beat
 var thump_low: bool = false # which of the two notes comes next
+var life_ticks: int = 0 # counts down while the extra ship beeps
 
 func _ready() -> void:
 	AudioServer.set_bus_mute(0, true) # silent until a game starts, like the arcade
@@ -77,6 +79,7 @@ func _ready() -> void:
 func _physics_process(_delta: float) -> void:
 	if playing:
 		heartbeat()
+	update_life_sound()
 	if not playing and Input.is_action_just_pressed("start"):
 		start_game()
 	if start_ticks > 0:
@@ -133,6 +136,7 @@ func start_game() -> void:
 # and the last score stays on screen. A score that makes the table brings up the initials; otherwise PUSH START flashes again.
 func end_game() -> void:
 	AudioServer.set_bus_mute(0, true) # the arcade turns every sound off when a game ends
+	life_ticks = 0 # the arcade clears the extra ship timer with every other sound
 	playing = false
 	var place: int = check_high_score()
 	update_display()
@@ -336,8 +340,14 @@ func add_score(points: int) -> void:
 	@warning_ignore("integer_division")
 	if score / 10000 > before / 10000:
 		lives += 1
-		$ExtraLifeSound.play()
+		life_ticks = LIFE_TICKS
 	update_display()
+
+# Like the arcade: the extra ship tone is on while bit 2 of the tick count is set, so it beeps 4 ticks on and 4 off until life_ticks runs out.
+func update_life_sound() -> void:
+	$SoundBoard.life = life_ticks > 0 and (Engine.get_physics_frames() & 4) != 0
+	if life_ticks > 0:
+		life_ticks -= 1
 
 # Counts down to the next chance of a saucer, and sends one if the arcade's rules say so.
 func count_to_saucer() -> void:
