@@ -29,8 +29,6 @@ one_shot = true
 [node name="EntryTimer" type="Timer" parent="." unique_id=1694239725]
 one_shot = true
 
-[node name="ExplosionSound" type="AudioStreamPlayer" parent="." unique_id=482082732]
-
 [node name="SoundBoard" type="AudioStreamPlayer" parent="." unique_id=1822838134]
 stream = SubResource("AudioStreamGenerator_7mycd")
 script = ExtResource("7_272bh")

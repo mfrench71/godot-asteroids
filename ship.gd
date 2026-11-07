@@ -31,7 +31,6 @@ var hyperspace_ticks: int = 0 # counts down while the ship is in hyperspace; 0 w
 var hyperspace_fails: bool = false # decided when the ship jumps, like the arcade
 
 func _physics_process(_delta: float) -> void:
-	update_thrust_sound()
 	# While the ship is in hyperspace, count down, then show it again where it landed.
 	if hyperspace_ticks > 0:
 		hyperspace_ticks -= 1
@@ -117,14 +116,6 @@ func start_is_clear() -> bool:
 			return false
 	return true
 
-# Like the arcade: the thrust sound while Up is held and the ship is in play, and never otherwise.
-func update_thrust_sound() -> void:
-	var on: bool = visible and Input.is_action_pressed("thrust")
-	if on and not $ThrustSound.playing:
-		$ThrustSound.play()
-	elif not on and $ThrustSound.playing:
-		$ThrustSound.stop()
-
 # The arcade's octagon hit test, for the saucer or a shot hitting the ship.
 func is_hit_by(point: Vector2, extra: float = 0.0) -> bool:
 	if not visible:
@@ -133,7 +124,6 @@ func is_hit_by(point: Vector2, extra: float = 0.0) -> bool:
 
 # The ship is destroyed: tells Main, hides the ship, starts the respawn wait and shows the explosion.
 func explode() -> void:
-	$ThrustSound.stop() # the arcade's thrust stops with the ship, and the last ship's _physics_process never runs again
 	destroyed.emit()
 	visible = false # off the screen, but the node stays, so it can come back
 	respawn_ticks = RESPAWN_TICKS

@@ -22,12 +22,6 @@ const HYPERSPACE_HOLD: int = 3 # hyperspace accepts a letter once held for 3 upd
 const FIRST_LETTER_SECONDS: float = 66.6 # the arcade's time for the first initial: 4096 updates / 61.5
 const NEXT_LETTER_SECONDS: float = 50.0 # and for each one after: 3072 updates / 61.5
 const SAVE_PATH: String = "user://high_scores.cfg" # user:// is a folder Godot gives the game for its own files
-# One explosion sound per rock size, indexed by Rock.size: small, medium, large, like the arcade's three pitches.
-const EXPLOSION_SOUNDS: Array[AudioStream] = [
-	preload("res://sounds/explosion_small.wav"),
-	preload("res://sounds/explosion_medium.wav"),
-	preload("res://sounds/explosion_large.wav"),
-]
 const THUMP_START_GAP: int = 48 # the arcade's $30: updates between beats at the start of each wave
 const THUMP_MIN_GAP: int = 8 # the shortest gap the arcade allows
 const THUMP_TICKS: int = 4 # each beat is on for 4 updates
@@ -35,6 +29,9 @@ const LIFE_TICKS: int = 88 # the arcade's $B0 (176), counted down twice an updat
 const SHIP_FIRE: int = 0 # which fire circuit, as the arcade's X register picks them
 const SAUCER_FIRE: int = 1
 const FIRE_TICKS: int = 16 # the arcade's $10: updates a fire sound stays on
+# The arcade's explosion pitches, indexed by Rock.size: small, medium, large. A bigger rock picks up its noise less often, so it sounds lower.
+const EXPLOSION_DIVIDERS: Array[int] = [3, 5, 12]
+const EXPLOSION_TICKS: int = 63 # the arcade's $3F: updates an explosion takes to fade away
 
 var score: int = 0 # points this game: rocks score from POINTS, saucers 200 or 1000
 var lives: int = 0 # ships left, counting the one in play; none until a game starts
@@ -61,6 +58,7 @@ var thump_low: bool = false # which of the two notes comes next
 var life_ticks: int = 0 # counts down while the extra ship beeps
 var fire_timers: Array[int] = [0, 0] # the arcade's fire timers: updates left, or -1 when a new shot wants its sound
 var thump_on_ticks: int = 0 # counts down the 4 ticks a beat is on
+var explosion_ticks: int = 0 # counts down while an explosion fades
 
 func _ready() -> void:
 	AudioServer.set_bus_mute(0, true) # silent until a game starts, like the arcade
@@ -87,6 +85,8 @@ func _physics_process(_delta: float) -> void:
 		update_fire_sound(SHIP_FIRE)
 		update_fire_sound(SAUCER_FIRE)
 		update_saucer_sound()
+		update_explosion_sound()
+		update_thrust_sound()
 	update_life_sound()
 	if not playing and Input.is_action_just_pressed("start"):
 		start_game()
@@ -114,7 +114,7 @@ func _physics_process(_delta: float) -> void:
 # then PLAYER 1 while the first wave and the ship wait.
 func start_game() -> void:
 	thump_low = false # every game's first beat is the low note, like the arcade's
-	$ExplosionSound.stop() # anything started silently in attract mode stops, so START begins in silence like the arcade
+	explosion_ticks = 0 # an explosion set going in attract mode, where the sound routine never runs, mustn't play at START
 	fire_timers.fill(0) # a saucer shot asked for its sound in attract mode, where the routine never runs, so clear it
 	AudioServer.set_bus_mute(0, false)
 	playing = true
@@ -147,6 +147,7 @@ func end_game() -> void:
 	$SoundBoard.all_off() # the arcade turns every circuit off when a game ends
 	AudioServer.set_bus_mute(0, true) # the arcade turns every sound off when a game ends
 	life_ticks = 0 # the arcade clears the extra ship timer with every other sound
+	explosion_ticks = 0
 	playing = false
 	var place: int = check_high_score()
 	update_display()
@@ -362,8 +363,8 @@ func spawn_explosion(at: Vector2) -> Explosion:
 
 # Plays the explosion for a size. The arcade has one explosion circuit, so a new one cuts off the last.
 func play_explosion(size: int) -> void:
-	$ExplosionSound.stream = EXPLOSION_SOUNDS[size]
-	$ExplosionSound.play()
+	$SoundBoard.explosion_divider = EXPLOSION_DIVIDERS[size]
+	explosion_ticks = EXPLOSION_TICKS
 
 # Adds points, with an extra ship each time the score passes another 10,000, like the arcade.
 func add_score(points: int) -> void:
@@ -420,6 +421,16 @@ func update_saucer_sound() -> void:
 	if saucer != null:
 		$SoundBoard.saucer_small = saucer.small
 
+# Like the arcade: the explosion's volume falls one step every 4 updates, from 15 to 0.
+func update_explosion_sound() -> void:
+	if explosion_ticks > 0:
+		explosion_ticks -= 1
+	$SoundBoard.explosion_volume = explosion_ticks >> 2
+
+# Like the arcade: the thrust sound while Up is held and the ship is in play, and never otherwise.
+func update_thrust_sound() -> void:
+	$SoundBoard.thrust = $Ship.visible and Input.is_action_pressed("thrust")
+
 # Like the arcade: the first saucers are large, then a random roll that favours small ones more and more,
 # and from 30,000 points every saucer is small.
 func pick_small() -> bool:
@@ -435,7 +446,7 @@ func _on_saucer_gone() -> void:
 
 # Runs when a shot or rock hits a saucer: it explodes and scores unless it ran into a rock.
 func _on_saucer_destroyed(saucer: Saucer, scored: bool) -> void:
-	play_explosion(0 if saucer.small else 1)
+	play_explosion(1 if saucer.small else 2) # the arcade gives the small saucer the medium rock's pitch, the large saucer the large rock's
 	var explosion: Explosion = spawn_explosion(saucer.position)
 	# Like the arcade, the explosion takes the saucer's place: no new saucer while it lasts,
 	# and the next wave doesn't wait for it, because that only waits for rocks.

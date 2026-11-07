@@ -17,6 +17,12 @@ const THUMP_HZ: float = 88.0 # the arcade's two thump notes, worked out from MAM
 const THUMP_LOW_HZ: float = 82.0
 const THUMP_RC: float = 0.00033 # seconds: the filter after the timer chip, 3.3 kilohms and 0.1 microfarads
 const THUMP_VOLUME: float = 0.3 # set by ear
+const NOISE_HZ: float = 12000.0 # the noise generator's clock: a new bit 12,000 times a second
+const EXPLOSION_RC: float = 0.003042 # seconds: the filter after the explosion circuit
+const EXPLOSION_VOLUME: float = 0.5 # set by ear
+const THRUST_RC: float = 0.0022 # seconds: the filter on the noise before the thrust switch
+const THRUST_RC_AFTER: float = 0.001 # seconds: the last filter, which lets through little above 160 Hz
+const THRUST_VOLUME: float = 1.0 # set by ear
 
 var life: bool = false # the extra ship circuit, on or off
 var playback: AudioStreamGeneratorPlayback # where the samples go
@@ -34,10 +40,27 @@ var thump_low: bool = false # which of its two notes
 var thump_phase: float = 0.0
 var thump_level: float = 0.0 # the thump after the filter, which follows the square wave a little behind
 var thump_smooth: float # how far the filter moves towards the wave each sample, worked out in _ready
+var thrust: bool = false # the thrust circuit, on or off
+var explosion_volume: int = 0 # the arcade's four explosion volume bits: 0 (silent) to 15
+var explosion_divider: int = 12 # the arcade's explosion pitch: it picks up the noise once every this many noise bits
+var noise_register: int = 0 # the arcade's 16-bit noise generator
+var noise: float = 1.0 # its output: 1 or -1
+var noise_phase: float = 0.0 # how far to the next noise bit
+var noise_count: int = 0 # noise bits so far, for the explosion's pitch
+var explosion_held: float = 0.0 # the noise as the explosion circuit last picked it up
+var explosion_level: float = 0.0 # the explosion after its filter
+var explosion_smooth: float
+var thrust_noise: float = 0.0 # the noise after the first thrust filter
+var thrust_level: float = 0.0 # the thrust after the last filter
+var thrust_smooth: float
+var thrust_smooth_after: float
 
 func _ready() -> void:
 	mix_rate = (stream as AudioStreamGenerator).mix_rate
-	thump_smooth = 1.0 - exp(-1.0 / (THUMP_RC * mix_rate))
+	thump_smooth = smoothing(THUMP_RC)
+	explosion_smooth = smoothing(EXPLOSION_RC)
+	thrust_smooth = smoothing(THRUST_RC)
+	thrust_smooth_after = smoothing(THRUST_RC_AFTER)
 	play()
 	playback = get_stream_playback() as AudioStreamGeneratorPlayback
 
@@ -71,11 +94,34 @@ func _process(_delta: float) -> void:
 			thump_phase = 0.0 # the timer chip is held reset while the circuit is off, so each beat starts the same way
 		thump_level += (thump_wave - thump_level) * thump_smooth
 		sample += THUMP_VOLUME * thump_level
+		noise_phase += NOISE_HZ / mix_rate
+		while noise_phase >= 1.0:
+			noise_phase -= 1.0
+			clock_noise()
+			noise_count += 1
+			if noise_count % explosion_divider == 0:
+				explosion_held = noise
+		explosion_level += (explosion_held * explosion_volume / 15.0 - explosion_level) * explosion_smooth
+		sample += EXPLOSION_VOLUME * explosion_level
+		thrust_noise += (noise - thrust_noise) * thrust_smooth
+		thrust_level += ((thrust_noise if thrust else 0.0) - thrust_level) * thrust_smooth_after
+		sample += THRUST_VOLUME * thrust_level
 		playback.push_frame(Vector2(sample, sample))
 
 # A triangle wave from a phase of 0 to 1: rises from -1 to 1 over the first half, falls back over the second.
 func triangle(phase: float) -> float:
 	return 1.0 - 4.0 * absf(phase - 0.5)
+
+# How far a filter of RC seconds moves towards its input in one sample.
+func smoothing(rc: float) -> float:
+	return 1.0 - exp(-1.0 / (rc * mix_rate))
+
+# One step of the arcade's noise generator, a 16-bit shift register. The new bit is the opposite of
+# bit 6 XOR bit 14 (XNOR), and everything moves up one place to make room for it.
+func clock_noise() -> void:
+	var bit: int = 1 - (((noise_register >> 6) ^ (noise_register >> 14)) & 1)
+	noise_register = ((noise_register << 1) | bit) & 0xFFFF
+	noise = 1.0 if bit == 1 else -1.0
 
 # Every circuit off, like the arcade's routine at $6EFA when a game ends.
 func all_off() -> void:
@@ -83,3 +129,5 @@ func all_off() -> void:
 	fire.fill(false)
 	saucer = false
 	thump = false
+	thrust = false
+	explosion_volume = 0
