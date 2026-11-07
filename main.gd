@@ -31,7 +31,6 @@ const EXPLOSION_SOUNDS: Array[AudioStream] = [
 const THUMP_START_GAP: int = 48 # the arcade's $30: updates between beats at the start of each wave
 const THUMP_MIN_GAP: int = 8 # the shortest gap the arcade allows
 const THUMP_TICKS: int = 4 # each beat is on for 4 updates
-const THUMP_LOW_PITCH: float = 0.8 # the second of the two notes, played slower and so lower
 const LIFE_TICKS: int = 88 # the arcade's $B0 (176), counted down twice an update: about 1.4 seconds of beeping
 const SHIP_FIRE: int = 0 # which fire circuit, as the arcade's X register picks them
 const SAUCER_FIRE: int = 1
@@ -61,6 +60,7 @@ var thump_ticks: int = 0 # counts down to the next beat
 var thump_low: bool = false # which of the two notes comes next
 var life_ticks: int = 0 # counts down while the extra ship beeps
 var fire_timers: Array[int] = [0, 0] # the arcade's fire timers: updates left, or -1 when a new shot wants its sound
+var thump_on_ticks: int = 0 # counts down the 4 ticks a beat is on
 
 func _ready() -> void:
 	AudioServer.set_bus_mute(0, true) # silent until a game starts, like the arcade
@@ -86,6 +86,7 @@ func _physics_process(_delta: float) -> void:
 		heartbeat()
 		update_fire_sound(SHIP_FIRE)
 		update_fire_sound(SAUCER_FIRE)
+		update_saucer_sound()
 	update_life_sound()
 	if not playing and Input.is_action_just_pressed("start"):
 		start_game()
@@ -112,6 +113,7 @@ func _physics_process(_delta: float) -> void:
 # Starts a game from attract mode, like the arcade: the screen emptied, the score and ships reset,
 # then PLAYER 1 while the first wave and the ship wait.
 func start_game() -> void:
+	thump_low = false # every game's first beat is the low note, like the arcade's
 	$ExplosionSound.stop() # anything started silently in attract mode stops, so START begins in silence like the arcade
 	fire_timers.fill(0) # a saucer shot asked for its sound in attract mode, where the routine never runs, so clear it
 	AudioServer.set_bus_mute(0, false)
@@ -142,6 +144,7 @@ func start_game() -> void:
 # Back to attract mode, like the arcade once the last explosion has gone: GAME OVER goes, the score is checked for the table,
 # and the last score stays on screen. A score that makes the table brings up the initials; otherwise PUSH START flashes again.
 func end_game() -> void:
+	$SoundBoard.all_off() # the arcade turns every circuit off when a game ends
 	AudioServer.set_bus_mute(0, true) # the arcade turns every sound off when a game ends
 	life_ticks = 0 # the arcade clears the extra ship timer with every other sound
 	playing = false
@@ -285,13 +288,18 @@ func heartbeat() -> void:
 	var ship_here: bool = $Ship.visible or $Ship.hyperspace_ticks > 0
 	if get_tree().get_nodes_in_group("rocks").is_empty() or not ship_here:
 		thump_ticks = thump_gap # when it starts again, the first beat is a whole gap away
+		thump_on_ticks = 0
+		$SoundBoard.thump = false
 		return
 	thump_ticks -= 1
 	if thump_ticks <= 0:
 		thump_low = not thump_low
-		$ThumpSound.pitch_scale = THUMP_LOW_PITCH if thump_low else 1.0
-		$ThumpSound.play()
+		$SoundBoard.thump_low = thump_low
 		thump_ticks = THUMP_TICKS + thump_gap
+		thump_on_ticks = THUMP_TICKS
+	$SoundBoard.thump = thump_on_ticks > 0
+	if thump_on_ticks > 0:
+		thump_on_ticks -= 1
 
 # A shot asks for its sound, like the arcade storing $80 in the circuit's timer.
 func start_fire_sound(which: int) -> void:
@@ -404,6 +412,13 @@ func spawn_saucer() -> void:
 	saucer.gone.connect(_on_saucer_gone)
 	saucer.destroyed.connect(_on_saucer_destroyed)
 	saucer.fired.connect(start_fire_sound.bind(SAUCER_FIRE))
+
+# Like the arcade: the siren is on while a saucer is flying, in that saucer's tone.
+func update_saucer_sound() -> void:
+	var saucer: Saucer = get_tree().get_first_node_in_group("saucers") as Saucer
+	$SoundBoard.saucer = saucer != null
+	if saucer != null:
+		$SoundBoard.saucer_small = saucer.small
 
 # Like the arcade: the first saucers are large, then a random roll that favours small ones more and more,
 # and from 30,000 points every saucer is small.
